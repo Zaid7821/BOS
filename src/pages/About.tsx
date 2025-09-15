@@ -51,35 +51,11 @@ const About = () => {
 
   const milestones = [
     {
-      year: "1995",
+      year: "2006",
       event: "School Founded",
       description: "Brilliant Oriental School was established with a vision to provide world-class education."
-    },
-    {
-      year: "2000",
-      event: "First Graduating Class",
-      description: "Our first cohort of students graduated with 100% college acceptance rate."
-    },
-    {
-      year: "2005",
-      event: "International Accreditation",
-      description: "Received accreditation from the International Schools Association."
-    },
-    {
-      year: "2010",
-      event: "Campus Expansion",
-      description: "Expanded facilities to include state-of-the-art science labs and library."
-    },
-    {
-      year: "2015",
-      event: "Technology Integration",
-      description: "Implemented comprehensive digital learning platforms across all grades."
-    },
-    {
-      year: "2020",
-      event: "Excellence Award",
-      description: "Recognized as 'School of Excellence' by the Department of Education."
     }
+    
   ];
 
   return (
@@ -108,14 +84,14 @@ const About = () => {
               <h2 className="text-3xl font-bold text-primary mb-6">Our History</h2>
               <div className="prose prose-lg max-w-none text-muted-foreground">
                 <p className="mb-4">
-                  Founded in 1995, Brilliant Oriental School began as a small institution with 
+                  Founded in 2006, Brilliant Oriental School began as a small institution with 
                   a big dream: to create an educational environment where students from diverse 
                   backgrounds could thrive academically while developing strong character and 
                   cultural awareness.
                 </p>
                 <p className="mb-4">
-                  Over nearly three decades, we have grown from a modest school with 50 students 
-                  to a thriving educational community serving over 1,200 students from kindergarten 
+                  Over nearly two decades, we have grown from a modest school with 50 students 
+                  to a thriving educational community serving over 1,400 students from kindergarten 
                   through grade 12. Our commitment to excellence has remained unwavering throughout 
                   this journey.
                 </p>
@@ -193,7 +169,7 @@ const About = () => {
                     <li>• Excellence in Education</li>
                     <li>• Respect for Diversity</li>
                     <li>• Character Development</li>
-                    <li>• Global Citizenship</li>
+            
                     <li>• Innovation & Creativity</li>
                   </ul>
                 </CardContent>

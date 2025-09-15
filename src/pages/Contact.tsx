@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin, Phone, Mail, Clock, Send, MessageCircle, Calendar } from "lucide-react";
+import { useState } from "react";
 
 const Contact = () => {
   const contactInfo = [
@@ -14,27 +15,26 @@ const Contact = () => {
       icon: MapPin,
       title: "Our Address",
       details: [
-        "123 Education Street",
-        "Learning City, LC 12345",
-        "United States"
+        "Pakka Talab",
+        "Fatehpur, UP 212601",
+        "India"
       ]
     },
     {
       icon: Phone,
       title: "Phone Numbers",
       details: [
-        "Main Office: +1 (555) 123-4567",
-        "Admissions: +1 (555) 123-4568",
-        "Fax: +1 (555) 123-4569"
+        "Main Office: 9565313000",
+        "Admissions: 9565313000",
+        
       ]
     },
     {
       icon: Mail,
       title: "Email Addresses",
       details: [
-        "info@brilliantorientalschool.edu",
-        "admissions@brilliantorientalschool.edu",
-        "principal@brilliantorientalschool.edu"
+        "info@bosfatehpur.in",
+        
       ]
     },
     {
@@ -48,41 +48,74 @@ const Contact = () => {
     }
   ];
 
-  const departments = [
-    {
-      name: "Main Office",
-      contact: "Dr. Sarah Chen",
-      phone: "+1 (555) 123-4567",
-      email: "office@brilliantorientalschool.edu",
-      hours: "8:00 AM - 5:00 PM"
-    },
-    {
-      name: "Admissions Office",
-      contact: "Ms. Emily Rodriguez",
-      phone: "+1 (555) 123-4568",
-      email: "admissions@brilliantorientalschool.edu",
-      hours: "8:30 AM - 4:30 PM"
-    },
-    {
-      name: "Academic Affairs",
-      contact: "Prof. Michael Johnson",
-      phone: "+1 (555) 123-4570",
-      email: "academics@brilliantorientalschool.edu",
-      hours: "9:00 AM - 4:00 PM"
-    },
-    {
-      name: "Student Services",
-      contact: "Mr. David Thompson",
-      phone: "+1 (555) 123-4571",
-      email: "students@brilliantorientalschool.edu",
-      hours: "8:00 AM - 5:00 PM"
-    }
-  ];
+  const [formState, setFormState] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    success?: boolean;
+    message?: string;
+  }>({});
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log("Form submitted");
+    setIsSubmitting(true);
+    setSubmitStatus({});
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: `${formState.firstName} ${formState.lastName}`,
+          email: formState.email,
+          subject: formState.subject,
+          message: formState.message
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setFormState({
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: ''
+        });
+      }
+      setSubmitStatus(result);
+    } catch (error) {
+      setSubmitStatus({
+        success: false,
+        message: 'Failed to submit form. Please try again.'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormState(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  const handleSelectChange = (value: string) => {
+    setFormState(prev => ({
+      ...prev,
+      subject: value
+    }));
   };
 
   return (
@@ -150,27 +183,52 @@ const Contact = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="firstName">First Name</Label>
-                        <Input id="firstName" placeholder="Enter your first name" required />
+                        <Input
+                          id="firstName"
+                          placeholder="Enter your first name"
+                          value={formState.firstName}
+                          onChange={handleChange}
+                          required
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="lastName">Last Name</Label>
-                        <Input id="lastName" placeholder="Enter your last name" required />
+                        <Input
+                          id="lastName"
+                          placeholder="Enter your last name"
+                          value={formState.lastName}
+                          onChange={handleChange}
+                          required
+                        />
                       </div>
                     </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="email">Email Address</Label>
-                      <Input id="email" type="email" placeholder="Enter your email" required />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="Enter your email"
+                        value={formState.email}
+                        onChange={handleChange}
+                        required
+                      />
                     </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="phone">Phone Number</Label>
-                      <Input id="phone" type="tel" placeholder="Enter your phone number" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="Enter your phone number"
+                        value={formState.phone}
+                        onChange={handleChange}
+                      />
                     </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="subject">Subject</Label>
-                      <Select>
+                      <Select value={formState.subject} onValueChange={handleSelectChange}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a subject" />
                         </SelectTrigger>
@@ -187,9 +245,11 @@ const Contact = () => {
                     
                     <div className="space-y-2">
                       <Label htmlFor="message">Message</Label>
-                      <Textarea 
-                        id="message" 
+                      <Textarea
+                        id="message"
                         placeholder="Please describe your inquiry or question in detail..."
+                        value={formState.message}
+                        onChange={handleChange}
                         rows={5}
                         required
                       />
@@ -240,67 +300,7 @@ const Contact = () => {
           </div>
         </section>
 
-        {/* Department Contacts */}
-        <section className="bg-gradient-subtle py-16">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-primary mb-4">Department Contacts</h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Connect directly with the right department for your specific needs
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {departments.map((dept, index) => (
-                <Card key={index} className="shadow-school-md border-primary/10 hover:shadow-school-lg transition-all duration-300">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-primary">{dept.name}</CardTitle>
-                    <CardDescription className="text-secondary font-medium">
-                      {dept.contact}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-3">
-                        <Phone className="w-4 h-4 text-primary" />
-                        <span className="text-muted-foreground">{dept.phone}</span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Mail className="w-4 h-4 text-primary" />
-                        <span className="text-muted-foreground">{dept.email}</span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Clock className="w-4 h-4 text-primary" />
-                        <span className="text-muted-foreground">{dept.hours}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Emergency Contact */}
-        <section className="container mx-auto px-4">
-          <Card className="bg-gradient-primary text-primary-foreground shadow-school-lg">
-            <CardContent className="pt-12 pb-12 text-center">
-              <h2 className="text-3xl font-bold mb-6">Emergency Contact</h2>
-              <p className="text-xl mb-6 text-primary-foreground/90 max-w-2xl mx-auto">
-                For urgent matters outside of office hours, please contact our emergency line
-              </p>
-              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                <div className="flex items-center space-x-3">
-                  <Phone className="w-6 h-6 text-secondary" />
-                  <span className="text-xl font-semibold">Emergency: +1 (555) 123-9999</span>
-                </div>
-                <div className="text-primary-foreground/80">
-                  Available 24/7 for urgent school matters
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+        
 
         {/* FAQ */}
         <section className="container mx-auto px-4">

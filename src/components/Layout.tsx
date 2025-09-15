@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Phone, Mail, MapPin } from "lucide-react";
 import { useState } from "react";
-import schoolLogo from "@/assets/school-logo.png";
+import schoolLogo from "@/assets/school-logo.jpg";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -12,7 +12,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { to: "/about", label: "About Us" },
     { to: "/academics", label: "Academics" },
     { to: "/admissions", label: "Admissions" },
-    { to: "/events", label: "Events & News" },
     { to: "/gallery", label: "Gallery" },
     { to: "/contact", label: "Contact" },
   ];
@@ -27,16 +26,16 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <div className="flex items-center space-x-6">
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-primary" />
-                <span>+1 (555) 123-4567</span>
+                <span>+91 9565313000</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-primary" />
-                <span>info@brilliantorientalschool.edu</span>
+                <a href="mailto:info@bosfatehpur.in" className="hover:underline">info@bosfatehpur.in</a>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <MapPin className="h-4 w-4 text-primary" />
-              <span>123 Education Street, Learning City</span>
+              <span>Pakka Talab Fatehpur, UP</span>
             </div>
           </div>
 
@@ -130,20 +129,20 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <h3 className="text-lg font-semibold">Brilliant Oriental School</h3>
               </div>
               <p className="text-primary-foreground/80 text-sm mb-4">
-                Nurturing minds, building futures. Excellence in education since 1995.
+                Nurturing minds, building futures. Excellence in education since 2006.
               </p>
               <div className="space-y-2 text-sm text-primary-foreground/80">
                 <div className="flex items-center space-x-2">
                   <MapPin className="h-4 w-4" />
-                  <span>123 Education Street, Learning City</span>
+                  <span>Pakka Talab, Fatehpur UP</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Phone className="h-4 w-4" />
-                  <span>+1 (555) 123-4567</span>
+                  <span>+91 9565313000</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Mail className="h-4 w-4" />
-                  <span>info@brilliantorientalschool.edu</span>
+                  <a href="mailto:info@bosfatehpur.in" className="hover:underline">info@bosfatehpur.in</a>
                 </div>
               </div>
             </div>
@@ -171,8 +170,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <p>Primary School (K-5)</p>
                 <p>Middle School (6-8)</p>
                 <p>High School (9-12)</p>
-                <p>Advanced Placement</p>
-                <p>International Programs</p>
+                
               </div>
             </div>
 
@@ -180,13 +178,28 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <div>
               <h4 className="text-lg font-semibold mb-4">Connect With Us</h4>
               <div className="space-y-3">
-                <Button variant="outline" size="sm" className="w-full bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                  onClick={() => window.open('https://www.facebook.com/bosfatehpur/', '_blank')}
+                >
                   Facebook
                 </Button>
-                <Button variant="outline" size="sm" className="w-full bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-                  Twitter
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                  onClick={() => window.open('https://www.youtube.com/@Brilliant_Oriental_School', '_blank')}
+                >
+                  Youtube
                 </Button>
-                <Button variant="outline" size="sm" className="w-full bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                  onClick={() => window.open('https://www.instagram.com/bos_officialaccount?igsh=ZjRnb3BreHJjN3h0', '_blank')}
+                >
                   Instagram
                 </Button>
               </div>
@@ -194,7 +207,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
 
           <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center text-sm text-primary-foreground/60">
-            <p>&copy; 2024 Brilliant Oriental School. All rights reserved.</p>
+            <p>&copy; 2025 Brilliant Oriental School. All rights reserved.</p>
           </div>
         </div>
       </footer>

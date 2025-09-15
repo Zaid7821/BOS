@@ -36,33 +36,6 @@ const Academics = () => {
     "AP US History", "AP Computer Science", "AP Art & Design"
   ];
 
-  const examInfo = [
-    {
-      exam: "SAT",
-      description: "Standardized test for college admissions",
-      avgScore: "1,350",
-      prepAvailable: true
-    },
-    {
-      exam: "ACT", 
-      description: "Alternative standardized test for college admissions",
-      avgScore: "30",
-      prepAvailable: true
-    },
-    {
-      exam: "AP Exams",
-      description: "Advanced Placement examinations",
-      avgScore: "4.2/5",
-      prepAvailable: true
-    },
-    {
-      exam: "TOEFL",
-      description: "Test of English as a Foreign Language",
-      avgScore: "105",
-      prepAvailable: true
-    }
-  ];
-
   const curriculum = [
     {
       subject: "STEM Education",
@@ -239,30 +212,20 @@ const Academics = () => {
             </TabsContent>
 
             <TabsContent value="exams" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {examInfo.map((exam, index) => (
-                  <Card key={index} className="shadow-school-md border-primary/10">
-                    <CardHeader>
-                      <CardTitle className="text-xl text-primary">{exam.exam}</CardTitle>
-                      <CardDescription>{exam.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">School Average:</span>
-                          <Badge variant="secondary">{exam.avgScore}</Badge>
-                        </div>
-                        {exam.prepAvailable && (
-                          <div className="flex items-center text-accent">
-                            <Award className="w-4 h-4 mr-2" />
-                            <span className="text-sm">Prep courses available</span>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <Card className="shadow-school-md border-primary/10">
+                <CardHeader>
+                  <CardTitle className="text-xl text-primary">Standardized Testing</CardTitle>
+                  <CardDescription>
+                    Contact our academic counselors for testing information and preparation resources
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button variant="academic" className="flex items-center">
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Testing Information
+                  </Button>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </section>

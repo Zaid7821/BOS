@@ -2,7 +2,7 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Users, Award, Globe, GraduationCap, Star } from "lucide-react";
+import { BookOpen, Users, Award, GraduationCap, Star } from "lucide-react";
 
 const Home = () => {
   const highlights = [
@@ -17,20 +17,14 @@ const Home = () => {
       description: "Dedicated teachers with advanced degrees and years of experience."
     },
     {
-      icon: Globe,
-      title: "Global Perspective",
-      description: "Multicultural environment preparing students for the modern world."
-    },
-    {
-      icon: GraduationCap,
-      title: "100% College Acceptance",
-      description: "All our graduates successfully continue to higher education."
+      icon: GraduationCap, // Islamic focus
+      title: "Islamic Values & Character",
+      description: "Balanced education that nurtures faith, good manners, and spirituality along with academics."
     }
   ];
 
   const achievements = [
-    "Top 10 Schools in the Region",
-    "International Accreditation",
+    "Top 3 Schools in the Region",
     "State Mathematics Champions",
     "Science Fair Winners"
   ];
@@ -44,7 +38,7 @@ const Home = () => {
           <div className="container mx-auto px-4 text-center relative z-10">
             <div className="animate-fade-in">
               <Badge variant="secondary" className="mb-6 text-sm px-4 py-2">
-                Excellence in Education Since 1995
+                Excellence in Education Since 2006
               </Badge>
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
                 Welcome to
@@ -56,15 +50,7 @@ const Home = () => {
                 Nurturing brilliant minds, fostering creativity, and building tomorrow's leaders 
                 in a diverse and inclusive learning environment.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button variant="secondary" size="lg" className="text-lg px-8 py-4">
-                  <BookOpen className="mr-2 h-5 w-5" />
-                  Explore Programs
-                </Button>
-                <Button variant="outline" size="lg" className="text-lg px-8 py-4 bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-                  Schedule Tour
-                </Button>
-              </div>
+              
             </div>
           </div>
         </section>
@@ -97,7 +83,11 @@ const Home = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               {achievements.map((achievement, index) => (
-                <Card key={index} className="text-center animate-scale-in shadow-school-md border-primary/10" style={{ animationDelay: `${index * 0.1}s` }}>
+                <Card
+                  key={index}
+                  className="text-center animate-scale-in shadow-school-md border-primary/10"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
                   <CardContent className="pt-6">
                     <Star className="h-8 w-8 text-secondary mx-auto mb-3" />
                     <p className="text-sm font-medium text-primary">{achievement}</p>
@@ -119,9 +109,14 @@ const Home = () => {
                 Discover what makes our school a premier destination for quality education
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* FIX: balanced grid (3 columns instead of 4) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {highlights.map((highlight, index) => (
-                <Card key={index} className="text-center animate-fade-in shadow-school-md hover:shadow-school-lg transition-all duration-300 hover:scale-105 border-primary/10" style={{ animationDelay: `${index * 0.2}s` }}>
+                <Card
+                  key={index}
+                  className="text-center animate-fade-in shadow-school-md hover:shadow-school-lg transition-all duration-300 hover:scale-105 border-primary/10"
+                  style={{ animationDelay: `${index * 0.2}s` }}
+                >
                   <CardHeader>
                     <div className="mx-auto mb-4 p-3 rounded-full bg-primary-lighter">
                       <highlight.icon className="h-8 w-8 text-primary" />
@@ -139,26 +134,7 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Call to Action */}
-        <section className="container mx-auto px-4 text-center">
-          <div className="bg-gradient-primary rounded-3xl p-12 text-primary-foreground shadow-school-lg">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Ready to Join Our Community?
-            </h2>
-            <p className="text-xl mb-8 text-primary-foreground/90 max-w-2xl mx-auto">
-              Take the first step towards an exceptional education. Schedule a campus tour 
-              or start your application today.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="secondary" size="lg" className="text-lg px-8 py-4">
-                Start Application
-              </Button>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-4 bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-                Book Campus Tour
-              </Button>
-            </div>
-          </div>
-        </section>
+       
       </div>
     </Layout>
   );
