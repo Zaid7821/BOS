@@ -68,7 +68,7 @@ const About = () => {
               About Our School
             </Badge>
             <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6">
-              Excellence in Education Since 1995
+              Excellence in Education Since 2006
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Learn about our rich history, dedicated staff, and commitment to providing 

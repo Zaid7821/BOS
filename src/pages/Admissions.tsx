@@ -196,12 +196,7 @@ const Admissions = () => {
             ))}
           </div>
 
-          <div className="text-center mt-8">
-            <Button variant="hero" size="lg" className="text-lg px-8 py-4">
-              <FileText className="mr-2 h-5 w-5" />
-              Start Your Application
-            </Button>
-          </div>
+         
         </section>
 
         {/* Eligibility Requirements */}

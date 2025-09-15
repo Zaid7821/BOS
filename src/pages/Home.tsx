@@ -50,7 +50,6 @@ const Home = () => {
                 Nurturing brilliant minds, fostering creativity, and building tomorrow's leaders 
                 in a diverse and inclusive learning environment.
               </p>
-              
             </div>
           </div>
         </section>
@@ -98,7 +97,49 @@ const Home = () => {
           </div>
         </section>
 
-        {/* School Highlights */}
+        {/* Chairman's Message (moved up + with name) */}
+        <section className="container mx-auto px-4 py-16">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-8 font-serif text-center">
+              Chairman's Message
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-12 items-start">
+              <div className="w-[300px] h-[300px] mx-auto lg:mx-0 rounded-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <img
+                  src="https://bosfatehpur.in/wp-content/uploads/2024/06/sq1.png"
+                  alt="Chairman"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="space-y-6">
+                <p className="text-muted-foreground leading-relaxed">
+                  It is with great pride and honor that I welcome you to Brilliant Oriental School.
+                  Our institution stands as a beacon of academic excellence and character development,
+                  nurturing young minds to become leaders of tomorrow.
+                </p>
+                <p className="text-muted-foreground leading-relaxed">
+                  We believe in providing a holistic education that combines rigorous academics with
+                  moral values and life skills. Our dedicated faculty and state-of-the-art facilities
+                  create an environment where students can thrive and reach their full potential.
+                </p>
+                <p className="text-muted-foreground leading-relaxed">
+                  As we continue our journey of educational excellence, we remain committed to our mission
+                  of shaping well-rounded individuals who will make meaningful contributions to society.
+                </p>
+
+                {/* Chairman Name */}
+                <div className="pt-4 text-right">
+                  <p className="text-lg font-semibold text-primary">Mr. Wasif Husain</p>
+                  <p className="text-sm text-muted-foreground">
+                    Chairman, Brilliant Oriental School
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* School Highlights (moved down) */}
         <section className="bg-gradient-subtle py-16">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
@@ -133,8 +174,6 @@ const Home = () => {
             </div>
           </div>
         </section>
-
-       
       </div>
     </Layout>
   );

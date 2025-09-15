@@ -68,9 +68,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   {item.label}
                 </NavLink>
               ))}
-              <Button variant="hero" size="sm">
-                Apply Now
-              </Button>
+              
             </nav>
 
             {/* Mobile menu button */}
