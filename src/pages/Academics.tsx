@@ -170,66 +170,7 @@ const Academics = () => {
           </div>
         </section>
 
-        {/* Advanced Placement & Exams */}
-        <section className="container mx-auto px-4">
-          <Tabs defaultValue="ap" className="w-full">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-primary mb-4">Advanced Programs & Assessments</h2>
-              <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-                <TabsTrigger value="ap">AP Programs</TabsTrigger>
-                <TabsTrigger value="exams">Standardized Tests</TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value="ap" className="space-y-6">
-              <Card className="shadow-school-md border-primary/10">
-                <CardHeader>
-                  <CardTitle className="text-2xl text-primary">Advanced Placement Courses</CardTitle>
-                  <CardDescription>
-                    College-level courses available to qualified high school students
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-                    {apCourses.map((course, index) => (
-                      <Badge key={index} variant="secondary" className="p-3 text-center">
-                        {course}
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <Button variant="academic" className="flex items-center">
-                      <Download className="w-4 h-4 mr-2" />
-                      Download AP Course Catalog
-                    </Button>
-                    <Button variant="outline" className="flex items-center">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      View AP Prep Schedule
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="exams" className="space-y-6">
-              <Card className="shadow-school-md border-primary/10">
-                <CardHeader>
-                  <CardTitle className="text-xl text-primary">Standardized Testing</CardTitle>
-                  <CardDescription>
-                    Contact our academic counselors for testing information and preparation resources
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button variant="academic" className="flex items-center">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Testing Information
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </section>
-
+       
         {/* Academic Calendar */}
         <section className="bg-gradient-primary py-16 text-primary-foreground">
           <div className="container mx-auto px-4 text-center">
