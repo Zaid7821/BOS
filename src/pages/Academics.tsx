@@ -208,10 +208,7 @@ const Academics = () => {
               </Card>
             </div>
             <div className="mt-8">
-              <Button variant="secondary" size="lg" className="text-lg px-8 py-4">
-                <Download className="mr-2 h-5 w-5" />
-                Download Full Calendar
-              </Button>
+             
             </div>
           </div>
         </section>
