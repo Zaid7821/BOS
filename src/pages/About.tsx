@@ -220,9 +220,9 @@ const About = () => {
         {/* Statistics */}
         <section className="bg-gradient-subtle py-16">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
               <div className="space-y-2">
-                <div className="text-4xl font-bold text-primary">1,200+</div>
+                <div className="text-4xl font-bold text-primary">1,400+</div>
                 <div className="text-muted-foreground">Students Enrolled</div>
               </div>
               <div className="space-y-2">
@@ -230,11 +230,7 @@ const About = () => {
                 <div className="text-muted-foreground">Faculty Members</div>
               </div>
               <div className="space-y-2">
-                <div className="text-4xl font-bold text-primary">100%</div>
-                <div className="text-muted-foreground">College Acceptance</div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-4xl font-bold text-primary">29</div>
+                <div className="text-4xl font-bold text-primary">19</div>
                 <div className="text-muted-foreground">Years of Excellence</div>
               </div>
             </div>

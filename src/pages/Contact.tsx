@@ -162,10 +162,9 @@ const Contact = () => {
           </div>
         </section>
 
-        {/* Contact Form and Map */}
+        {/* Contact Form */}
         <section className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Contact Form */}
+          <div className="max-w-2xl mx-auto">
             <div>
               <h2 className="text-3xl font-bold text-primary mb-6">Send Us a Message</h2>
               <Card className="shadow-school-lg border-primary/10">
@@ -262,40 +261,6 @@ const Contact = () => {
                   </form>
                 </CardContent>
               </Card>
-            </div>
-
-            {/* School Map */}
-            <div>
-              <h2 className="text-3xl font-bold text-primary mb-6">Find Us</h2>
-              <Card className="shadow-school-lg border-primary/10 mb-6">
-                <CardContent className="p-0">
-                  <div className="aspect-video bg-gradient-primary rounded-lg flex items-center justify-center">
-                    <div className="text-center text-primary-foreground">
-                      <MapPin className="w-16 h-16 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold mb-2">Interactive Map</h3>
-                      <p className="text-primary-foreground/80">
-                        123 Education Street, Learning City
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Quick Actions */}
-              <div className="space-y-4">
-                <Button variant="outline" className="w-full justify-start">
-                  <MapPin className="w-5 h-5 mr-3" />
-                  Get Directions
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Calendar className="w-5 h-5 mr-3" />
-                  Schedule Campus Tour
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Phone className="w-5 h-5 mr-3" />
-                  Call Main Office
-                </Button>
-              </div>
             </div>
           </div>
         </section>
