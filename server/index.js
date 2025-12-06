@@ -134,17 +134,19 @@
 
 // -------------------------------------------------------------
 
+
 // server/index.js
-import express from 'express';
-import cors from 'cors';
-import pool from './db.js';
+import express from "express";
+import cors from "cors";
+import pool from "./db.js";
 
 const app = express();
 
+// Enable CORS + JSON body parsing
 app.use(cors());
 app.use(express.json());
 
-// ✅ Startup pe DB check + table ensure
+// Ensure DB and table exist on startup
 async function initDb() {
     try {
         await pool.query(`
@@ -157,25 +159,27 @@ async function initDb() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
     `);
-        console.log('✅ Connected to DB and ensured contact_messages table exists.');
+        console.log("✅ Connected to DB and ensured contact_messages table exists.");
     } catch (err) {
-        console.error('CRITICAL: Could not connect to database or create table. error:');
+        console.error("CRITICAL: Could not connect to database or create table. error:");
         console.error(err);
         process.exit(1);
     }
 }
 
-app.get('/api/health', (req, res) => {
+// Health check
+app.get("/api/health", (req, res) => {
     res.json({ ok: true });
 });
 
-app.post('/api/contact', async (req, res) => {
+// Contact form submission route
+app.post("/api/contact", async (req, res) => {
     const { name, email, subject, message } = req.body;
 
     if (!name || !email || !subject || !message) {
         return res.status(400).json({
             success: false,
-            message: 'All fields (name, email, subject, message) are required.',
+            message: "All fields (name, email, subject, message) are required.",
         });
     }
 
@@ -188,21 +192,21 @@ app.post('/api/contact', async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: 'Your message has been received. We will contact you soon.',
+            message: "Your message has been received. We will contact you soon.",
         });
     } catch (err) {
-        console.error('Error saving contact message:', err);
+        console.error("Error saving contact message:", err);
         return res.status(500).json({
             success: false,
-            message: 'Something went wrong while saving your message.',
+            message: "Something went wrong while saving your message.",
         });
     }
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 initDb().then(() => {
     app.listen(PORT, () => {
-        console.log(`Backend server running on http://localhost:${PORT}`);
+        console.log(`Backend server running on port ${PORT}`);
     });
 });
