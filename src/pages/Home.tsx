@@ -9,45 +9,60 @@ const Home = () => {
     {
       icon: Award,
       title: "Award-Winning Education",
-      description: "Recognized for excellence in academic achievement and student development."
+      description: "Recognized for excellence in academic achievement and student development.",
     },
     {
       icon: Users,
       title: "Expert Faculty",
-      description: "Dedicated teachers with advanced degrees and years of experience."
+      description: "Dedicated teachers with advanced degrees and years of experience.",
     },
     {
       icon: GraduationCap, // Islamic focus
       title: "Islamic Values & Character",
-      description: "Balanced education that nurtures faith, good manners, and spirituality along with academics."
-    }
+      description:
+        "Balanced education that nurtures faith, good manners, and spirituality along with academics.",
+    },
   ];
 
   const achievements = [
     "Top 3 Schools in the Region",
     "State Mathematics Champions",
-    "Science Fair Winners"
+    "Science Fair Winners",
   ];
 
   return (
     <Layout>
       <div className="space-y-16">
-        {/* Hero Section */}
-        <section className="relative min-h-[80vh] flex items-center justify-center bg-gradient-hero text-primary-foreground overflow-hidden">
-          <div className="absolute inset-0 bg-black/10"></div>
+        {/* Hero Section with School Image */}
+        <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
+          {/* Background school image */}
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: "url('/images/bos-hero.jpg')" }}
+          />
+
+          {/* Gradient overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/85 via-blue-900/70 to-emerald-600/70" />
+
+          {/* Content */}
           <div className="container mx-auto px-4 text-center relative z-10">
             <div className="animate-fade-in">
-              <Badge variant="secondary" className="mb-6 text-sm px-4 py-2">
+              <Badge
+                variant="secondary"
+                className="mb-6 text-sm px-4 py-2 bg-amber-400 text-black font-semibold shadow-lg"
+              >
                 Excellence in Education Since 2006
               </Badge>
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight text-white drop-shadow-xl">
                 Welcome to
                 <span className="block text-secondary animate-glow">
                   Brilliant Oriental School
                 </span>
               </h1>
-              <p className="text-xl md:text-2xl mb-8 text-primary-foreground/90 max-w-3xl mx-auto">
-                Nurturing brilliant minds, fostering creativity, and building tomorrow's leaders 
+
+              <p className="text-xl md:text-2xl mb-8 text-gray-100 max-w-3xl mx-auto drop-shadow">
+                Nurturing brilliant minds, fostering creativity, and building tomorrow&apos;s leaders
                 in a diverse and inclusive learning environment.
               </p>
             </div>
@@ -65,17 +80,17 @@ const Home = () => {
                 <div>
                   <h3 className="text-xl font-semibold text-secondary mb-3">Vision</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    To be a leading educational institution that cultivates global citizens 
-                    with strong character, academic excellence, and cultural awareness, 
-                    preparing them to thrive in an interconnected world.
+                    To be a leading educational institution that cultivates global citizens with strong
+                    character, academic excellence, and cultural awareness, preparing them to thrive in
+                    an interconnected world.
                   </p>
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-secondary mb-3">Mission</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    We provide a comprehensive, multicultural education that combines 
-                    rigorous academics with character development, fostering critical 
-                    thinking, creativity, and respect for diversity in our students.
+                    We provide a comprehensive, multicultural education that combines rigorous academics
+                    with character development, fostering critical thinking, creativity, and respect for
+                    diversity in our students.
                   </p>
                 </div>
               </div>
@@ -97,11 +112,11 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Chairman's Message (moved up + with name) */}
+        {/* Chairman's Message */}
         <section className="container mx-auto px-4 py-16">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-primary mb-8 font-serif text-center">
-              Chairman's Message
+              Chairman&apos;s Message
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-12 items-start">
               <div className="w-[300px] h-[300px] mx-auto lg:mx-0 rounded-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -113,21 +128,20 @@ const Home = () => {
               </div>
               <div className="space-y-6">
                 <p className="text-muted-foreground leading-relaxed">
-                  It is with great pride and honor that I welcome you to Brilliant Oriental School.
-                  Our institution stands as a beacon of academic excellence and character development,
-                  nurturing young minds to become leaders of tomorrow.
+                  It is with great pride and honor that I welcome you to Brilliant Oriental School. Our
+                  institution stands as a beacon of academic excellence and character development, nurturing
+                  young minds to become leaders of tomorrow.
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
-                  We believe in providing a holistic education that combines rigorous academics with
-                  moral values and life skills. Our dedicated faculty and state-of-the-art facilities
-                  create an environment where students can thrive and reach their full potential.
+                  We believe in providing a holistic education that combines rigorous academics with moral
+                  values and life skills. Our dedicated faculty and state-of-the-art facilities create an
+                  environment where students can thrive and reach their full potential.
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
-                  As we continue our journey of educational excellence, we remain committed to our mission
-                  of shaping well-rounded individuals who will make meaningful contributions to society.
+                  As we continue our journey of educational excellence, we remain committed to our mission of
+                  shaping well-rounded individuals who will make meaningful contributions to society.
                 </p>
 
-                {/* Chairman Name */}
                 <div className="pt-4 text-right">
                   <p className="text-lg font-semibold text-primary">Mr. Wasif Husain</p>
                   <p className="text-sm text-muted-foreground">
@@ -139,7 +153,7 @@ const Home = () => {
           </div>
         </section>
 
-        {/* School Highlights (moved down) */}
+        {/* School Highlights */}
         <section className="bg-gradient-subtle py-16">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
@@ -150,7 +164,7 @@ const Home = () => {
                 Discover what makes our school a premier destination for quality education
               </p>
             </div>
-            {/* FIX: balanced grid (3 columns instead of 4) */}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {highlights.map((highlight, index) => (
                 <Card
