@@ -30,7 +30,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-primary" />
-                <a href="mailto:info@bosfatehpur.in" className="hover:underline">info@bosfatehpur.in</a>
+                <a href="mailto:info@bosfatehpur.in" className="hover:underline">
+                  info@bosfatehpur.in
+                </a>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -42,13 +44,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           {/* Main navigation */}
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-3">
-              <img 
-                src={schoolLogo} 
-                alt="Brilliant Oriental School Logo" 
+              <img
+                src={schoolLogo}
+                alt="Brilliant Oriental School Logo"
                 className="h-12 w-12 object-contain"
               />
               <div>
-                <h1 className="text-xl font-bold text-primary">Brilliant Oriental School</h1>
+                <h1 className="text-xl font-bold text-primary">
+                  Brilliant Oriental School
+                </h1>
                 <p className="text-sm text-muted-foreground">Excellence in Education</p>
               </div>
             </div>
@@ -60,15 +64,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   key={item.to}
                   to={item.to}
                   className={({ isActive }) =>
-                    `text-sm font-medium transition-colors hover:text-primary ${
-                      isActive ? "text-primary border-b-2 border-primary pb-1" : "text-foreground"
+                    `text-sm font-medium transition-colors hover:text-primary ${isActive
+                      ? "text-primary border-b-2 border-primary pb-1"
+                      : "text-foreground"
                     }`
                   }
                 >
                   {item.label}
                 </NavLink>
               ))}
-              
             </nav>
 
             {/* Mobile menu button */}
@@ -91,8 +95,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     key={item.to}
                     to={item.to}
                     className={({ isActive }) =>
-                      `text-sm font-medium transition-colors hover:text-primary px-2 py-1 rounded ${
-                        isActive ? "text-primary bg-primary-lighter" : "text-foreground"
+                      `text-sm font-medium transition-colors hover:text-primary px-2 py-1 rounded ${isActive ? "text-primary bg-primary-lighter" : "text-foreground"
                       }`
                     }
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -119,11 +122,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             {/* School Info */}
             <div>
               <div className="flex items-center space-x-3 mb-4">
-                <img 
-                  src={schoolLogo} 
-                  alt="Brilliant Oriental School Logo" 
-                  className="h-10 w-10 object-contain filter brightness-0 invert"
-                />
+                {/* 🔥 Updated logo styling here */}
+                <div className="h-10 w-10 rounded bg-white flex items-center justify-center overflow-hidden">
+                  <img
+                    src={schoolLogo}
+                    alt="Brilliant Oriental School Logo"
+                    className="h-8 w-8 object-contain"
+                  />
+                </div>
                 <h3 className="text-lg font-semibold">Brilliant Oriental School</h3>
               </div>
               <p className="text-primary-foreground/80 text-sm mb-4">
@@ -140,7 +146,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <Mail className="h-4 w-4" />
-                  <a href="mailto:info@bosfatehpur.in" className="hover:underline">info@bosfatehpur.in</a>
+                  <a
+                    href="mailto:info@bosfatehpur.in"
+                    className="hover:underline"
+                  >
+                    info@bosfatehpur.in
+                  </a>
                 </div>
               </div>
             </div>
@@ -168,7 +179,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <p>Primary School (K-5)</p>
                 <p>Middle School (6-8)</p>
                 <p>High School (9-12)</p>
-                
               </div>
             </div>
 
@@ -180,7 +190,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   variant="outline"
                   size="sm"
                   className="w-full bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground hover:text-primary"
-                  onClick={() => window.open('https://www.facebook.com/bosfatehpur/', '_blank')}
+                  onClick={() =>
+                    window.open("https://www.facebook.com/bosfatehpur/", "_blank")
+                  }
                 >
                   Facebook
                 </Button>
@@ -188,7 +200,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   variant="outline"
                   size="sm"
                   className="w-full bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground hover:text-primary"
-                  onClick={() => window.open('https://www.youtube.com/@Brilliant_Oriental_School', '_blank')}
+                  onClick={() =>
+                    window.open(
+                      "https://www.youtube.com/@Brilliant_Oriental_School",
+                      "_blank",
+                    )
+                  }
                 >
                   Youtube
                 </Button>
@@ -196,7 +213,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   variant="outline"
                   size="sm"
                   className="w-full bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground hover:text-primary"
-                  onClick={() => window.open('https://www.instagram.com/bos_officialaccount?igsh=ZjRnb3BreHJjN3h0', '_blank')}
+                  onClick={() =>
+                    window.open(
+                      "https://www.instagram.com/bos_officialaccount?igsh=ZjRnb3BreHJjN3h0",
+                      "_blank",
+                    )
+                  }
                 >
                   Instagram
                 </Button>

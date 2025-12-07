@@ -3,9 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle, Calendar, DollarSign, FileText, Users, Clock, Download } from "lucide-react";
+import { CheckCircle, Calendar, Users, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Admissions = () => {
+  const navigate = useNavigate();
+
   const applicationSteps = [
     {
       step: 1,
@@ -93,33 +96,6 @@ const Admissions = () => {
     }
   ];
 
-  const tuitionFees = [
-    {
-      grade: "Kindergarten - Grade 2",
-      tuition: "$15,000",
-      fees: "$1,500",
-      total: "$16,500"
-    },
-    {
-      grade: "Grade 3 - Grade 5", 
-      tuition: "$17,000",
-      fees: "$1,800",
-      total: "$18,800"
-    },
-    {
-      grade: "Grade 6 - Grade 8",
-      tuition: "$19,000", 
-      fees: "$2,000",
-      total: "$21,000"
-    },
-    {
-      grade: "Grade 9 - Grade 12",
-      tuition: "$22,000",
-      fees: "$2,500",
-      total: "$24,500"
-    }
-  ];
-
   const scholarships = [
     {
       name: "Academic Excellence Scholarship",
@@ -128,7 +104,7 @@ const Admissions = () => {
     },
     {
       name: "Merit-Based Scholarship",
-      amount: "Up to 30% tuition", 
+      amount: "Up to 30% tuition",
       criteria: "Strong academic record and leadership potential"
     },
     {
@@ -146,6 +122,7 @@ const Admissions = () => {
   return (
     <Layout>
       <div className="space-y-16">
+
         {/* Hero Section */}
         <section className="bg-gradient-subtle py-16">
           <div className="container mx-auto px-4 text-center">
@@ -156,13 +133,13 @@ const Admissions = () => {
               Admissions Information
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Begin your journey with Brilliant Oriental School. Learn about our admission 
+              Begin your journey with Brilliant Oriental School. Learn about our admission
               process, requirements, and how to become part of our educational community.
             </p>
           </div>
         </section>
 
-        {/* Application Process */}
+        {/* Application Process Section */}
         <section className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-primary mb-4">Application Process</h2>
@@ -170,7 +147,7 @@ const Admissions = () => {
               Follow our streamlined five-step process to join our school community
             </p>
           </div>
-          
+
           <div className="space-y-6">
             {applicationSteps.map((step, index) => (
               <Card key={index} className="shadow-school-md border-primary/10 relative overflow-hidden">
@@ -195,8 +172,6 @@ const Admissions = () => {
               </Card>
             ))}
           </div>
-
-         
         </section>
 
         {/* Eligibility Requirements */}
@@ -309,42 +284,17 @@ const Admissions = () => {
           </div>
         </section>
 
-        {/* Tuition & Financial Aid */}
+        {/* Financial Aid */}
         <section className="bg-gradient-primary py-16 text-primary-foreground">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Tuition & Financial Aid</h2>
+              <h2 className="text-3xl font-bold mb-4">Financial Aid</h2>
               <p className="text-xl text-primary-foreground/90 max-w-2xl mx-auto">
-                Affordable education with comprehensive financial assistance programs
+                Comprehensive financial assistance programs
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Tuition Table */}
-              <Card className="bg-white/10 border-white/20 text-primary-foreground">
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center">
-                    <DollarSign className="w-6 h-6 mr-3 text-secondary" />
-                    Annual Tuition & Fees
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {tuitionFees.map((fee, index) => (
-                      <div key={index} className="flex justify-between items-center py-3 border-b border-white/20">
-                        <div>
-                          <div className="font-medium">{fee.grade}</div>
-                          <div className="text-sm text-primary-foreground/70">
-                            Tuition: {fee.tuition} | Fees: {fee.fees}
-                          </div>
-                        </div>
-                        <div className="text-lg font-bold text-secondary">{fee.total}</div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
+            <div className="max-w-3xl mx-auto">
               {/* Scholarships */}
               <Card className="bg-white/10 border-white/20 text-primary-foreground">
                 <CardHeader>
@@ -371,10 +321,6 @@ const Admissions = () => {
                 </CardContent>
               </Card>
             </div>
-
-            <div className="text-center mt-8">
-              
-            </div>
           </div>
         </section>
 
@@ -386,20 +332,21 @@ const Admissions = () => {
                 Questions About Admissions?
               </h2>
               <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Our admissions team is here to help you through every step of the process. 
+                Our admissions team is here to help you through every step of the process.
                 Contact us for personalized guidance.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button variant="hero" size="lg" className="text-lg px-8 py-4">
+                <Button variant="hero" size="lg" className="text-lg px-8 py-4" onClick={() => navigate("/contact")}>
                   Schedule Campus Tour
                 </Button>
-                <Button variant="outline" size="lg" className="text-lg px-8 py-4">
+                <Button variant="outline" size="lg" className="text-lg px-8 py-4" onClick={() => navigate("/contact")}>
                   Contact Admissions
                 </Button>
               </div>
             </CardContent>
           </Card>
         </section>
+
       </div>
     </Layout>
   );
