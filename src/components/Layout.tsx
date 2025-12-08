@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Phone, Mail, MapPin } from "lucide-react";
 import { useState } from "react";
@@ -6,6 +6,7 @@ import schoolLogo from "@/assets/school-logo.jpg";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const navItems = [
     { to: "/", label: "Home" },
@@ -73,6 +74,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   {item.label}
                 </NavLink>
               ))}
+
+              {/* Apply Now for Desktop */}
+              <Button
+                variant="hero"
+                size="sm"
+                onClick={() => navigate("/contact")}
+              >
+                Apply Now
+              </Button>
             </nav>
 
             {/* Mobile menu button */}
@@ -103,7 +113,16 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     {item.label}
                   </NavLink>
                 ))}
-                <Button variant="hero" size="sm" className="self-start">
+
+                <Button
+                  variant="hero"
+                  size="sm"
+                  className="self-start"
+                  onClick={() => {
+                    navigate("/contact");
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
                   Apply Now
                 </Button>
               </div>
@@ -122,7 +141,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             {/* School Info */}
             <div>
               <div className="flex items-center space-x-3 mb-4">
-                {/* 🔥 Updated logo styling here */}
                 <div className="h-10 w-10 rounded bg-white flex items-center justify-center overflow-hidden">
                   <img
                     src={schoolLogo}
@@ -231,6 +249,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
       </footer>
+
+      {/* 🔥 Sticky Apply Now Button (visible on all pages) */}
+      <Button
+        variant="hero"
+        className="fixed bottom-6 right-6 z-50 rounded-full shadow-lg px-6 py-3 text-base hidden md:flex"
+        onClick={() => navigate("/contact")}
+      >
+        Apply Now
+      </Button>
     </div>
   );
 };
