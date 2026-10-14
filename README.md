@@ -1,59 +1,43 @@
+# Brilliant Oriental Senior Secondary School — Website
 
+CBSE affiliated (Affiliation No. 2134844), Pakka Talab, Fatehpur, UP.
 
-**Use your preferred IDE**
+Built with Vite, React, TypeScript, Tailwind CSS and shadcn/ui. The backend (`server/`) is Express + PostgreSQL.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Run locally
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# 1. Backend
+cp server/.env.example server/.env   # then fill in DATABASE_URL, ADMIN_PASSWORD, ADMIN_TOKEN_SECRET
+npm run server                       # http://localhost:5000  (tables are created automatically)
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# 2. Website (in a second terminal)
+npm run dev                          # http://localhost:8080  (/api is proxied to the backend)
 ```
 
-**Edit a file directly in GitHub**
+## Editing school content
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Almost everything (contact details, fees, toppers, testimonials, staff, events, gallery, disclosure) is in
+**`src/data/site.ts`**.
 
-**Use GitHub Codespaces**
+Items marked `isSample: true` are placeholders. They show with a yellow "Sample" tag in `npm run dev` and are
+hidden automatically in the production build. Replace them with real data and remove `isSample` to publish them.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+To add Hindi translations for more text, edit `src/lib/i18n.tsx`.
 
-## What technologies are used for this project?
+## Admin dashboard
 
-This project is built with:
+Open `/admin` and log in with `ADMIN_PASSWORD`. Staff can:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- see admission enquiries and mark them contacted / admitted / closed
+- post, hide, highlight or delete notices (shown in the scrolling notice bar and on the Notices page)
+- read and delete contact form messages
 
-## How can I deploy this project?
+## Deploying
 
-Simply open [Lovable](https://lovable.dev/projects/02b5f4f5-1195-4ece-a0eb-97e6b62336b4) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- **Frontend (Vercel):** set `VITE_API_BASE_URL` to your backend URL, e.g. `https://your-api.onrender.com`.
+- **Backend (Render etc.):** set `DATABASE_URL`, `DATABASE_SSL=true` for hosted Postgres, `ADMIN_PASSWORD`,
+  `ADMIN_TOKEN_SECRET`, and `CORS_ORIGIN` (your website URL).
+- Never commit `server/.env`.
