@@ -439,12 +439,31 @@ app.post("/api/admin/notices", requireAdmin, async (req, res) => {
 
 app.patch("/api/admin/notices/:id", requireAdmin, async (req, res) => {
   const { isActive, isImportant } = req.body;
+  const text = (key, max) => (typeof req.body[key] === "string" ? clean(req.body[key], max) : null);
+  const title = text("title", 200);
+  const body = text("body", 2000);
+  const link = text("link", 500);
+  if (title === "") return res.status(400).json({ success: false, message: "Notice title is required." });
+  if (link && !/^(https?:\/\/|\/)/.test(link)) {
+    return res.status(400).json({ success: false, message: "Link must start with https:// or /" });
+  }
+  // Empty strings clear body/link; null (not sent) leaves the column unchanged.
   await pool.query(
     `UPDATE notices SET
        is_active = COALESCE($1, is_active),
-       is_important = COALESCE($2, is_important)
-     WHERE id = $3`,
-    [typeof isActive === "boolean" ? isActive : null, typeof isImportant === "boolean" ? isImportant : null, Number(req.params.id)],
+       is_important = COALESCE($2, is_important),
+       title = COALESCE($3, title),
+       body = CASE WHEN $4::text IS NULL THEN body ELSE NULLIF($4, '') END,
+       link = CASE WHEN $5::text IS NULL THEN link ELSE NULLIF($5, '') END
+     WHERE id = $6`,
+    [
+      typeof isActive === "boolean" ? isActive : null,
+      typeof isImportant === "boolean" ? isImportant : null,
+      title,
+      body,
+      link,
+      Number(req.params.id),
+    ],
   );
   res.json({ success: true });
 });

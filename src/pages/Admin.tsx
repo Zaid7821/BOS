@@ -110,6 +110,7 @@ const Admin = () => {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [error, setError] = useState("");
   const [draft, setDraft] = useState({ title: "", body: "", link: "", isImportant: false });
+  const [editingNotice, setEditingNotice] = useState<{ id: number; title: string; body: string; link: string } | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -339,9 +340,38 @@ const Admin = () => {
                       {!n.is_active && <Badge variant="outline">Hidden</Badge>}
                       <span className="text-xs text-muted-foreground">{when(n.created_at)}</span>
                     </div>
-                    <p className="font-semibold">{n.title}</p>
-                    {n.body && <p className="text-sm text-muted-foreground whitespace-pre-line">{n.body}</p>}
+                    {editingNotice?.id === n.id ? (
+                      <form
+                        className="space-y-2"
+                        onSubmit={async (ev) => {
+                          ev.preventDefault();
+                          const { id, ...changes } = editingNotice;
+                          if (await call(`/api/admin/notices/${id}`, "PATCH", changes)) setEditingNotice(null);
+                        }}
+                      >
+                        <Input aria-label="Title" value={editingNotice.title} onChange={(ev) => setEditingNotice({ ...editingNotice, title: ev.target.value })} required maxLength={200} />
+                        <Textarea aria-label="Details" rows={3} value={editingNotice.body} onChange={(ev) => setEditingNotice({ ...editingNotice, body: ev.target.value })} maxLength={2000} placeholder="Details" />
+                        <Input aria-label="Link" value={editingNotice.link} onChange={(ev) => setEditingNotice({ ...editingNotice, link: ev.target.value })} placeholder="Link (optional)" />
+                        <div className="flex gap-2">
+                          <Button type="submit" size="sm">Save</Button>
+                          <Button type="button" size="sm" variant="ghost" onClick={() => setEditingNotice(null)}>Cancel</Button>
+                        </div>
+                      </form>
+                    ) : (
+                      <>
+                        <p className="font-semibold">{n.title}</p>
+                        {n.body && <p className="text-sm text-muted-foreground whitespace-pre-line">{n.body}</p>}
+                        {n.link && <a href={n.link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline break-all">{n.link}</a>}
+                      </>
+                    )}
                     <div className="mt-3 flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setEditingNotice({ id: n.id, title: n.title, body: n.body ?? "", link: n.link ?? "" })}
+                      >
+                        Edit
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => call(`/api/admin/notices/${n.id}`, "PATCH", { isActive: !n.is_active })}>
                         {n.is_active ? "Hide" : "Show"}
                       </Button>

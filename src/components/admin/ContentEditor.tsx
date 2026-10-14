@@ -9,7 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { api } from "@/lib/api";
 import { uploadImage } from "@/lib/upload";
 import { useSavedContent, type SiteContent } from "@/hooks/useSiteContent";
-import { events, fees, staff, testimonials, toppers, transportRoutes, youtubeVideoIds, type Sampleable } from "@/data/site";
+import { events, fees, staff, stats, testimonials, toppers, transportRoutes, youtubeVideoIds, type Sampleable } from "@/data/site";
+
+const SAMPLE = "__sample";
 
 type FieldType = "text" | "textarea" | "list" | "image";
 type Field = { key: string; label: string; type?: FieldType; placeholder?: string; required?: boolean };
@@ -22,8 +24,9 @@ type ListSection = {
   defaults: Record<string, unknown>[];
 };
 
-// Built-in content minus placeholder ("sample") rows, used to pre-fill a section that was never saved.
-const real = <T extends Sampleable>(rows: T[]) => rows.filter((r) => !r.isSample).map(({ isSample: _s, ...rest }) => rest);
+// Built-in content used to pre-fill a section that was never saved, so admins can edit or delete what the site shows.
+// Placeholder rows keep a marker so the editor can label them as examples.
+const builtIn = <T extends Sampleable>(rows: T[]) => rows.map(({ isSample, ...rest }) => (isSample ? { ...rest, [SAMPLE]: "1" } : rest));
 
 const SECTIONS: ListSection[] = [
   {
@@ -31,7 +34,7 @@ const SECTIONS: ListSection[] = [
     title: "Board toppers",
     hint: "Shown on the home page.",
     item: "topper",
-    defaults: real(toppers),
+    defaults: builtIn(toppers),
     fields: [
       { key: "name", label: "Student name", required: true },
       { key: "className", label: "Class / stream", placeholder: "Class XII (Science)", required: true },
@@ -45,7 +48,7 @@ const SECTIONS: ListSection[] = [
     title: "Upcoming events",
     hint: "Shown on the Notices & Events page.",
     item: "event",
-    defaults: real(events),
+    defaults: builtIn(events),
     fields: [
       { key: "title", label: "Event name", required: true },
       { key: "date", label: "Date", placeholder: "14 November 2026", required: true },
@@ -58,7 +61,7 @@ const SECTIONS: ListSection[] = [
     title: "Fee structure",
     hint: "Shown on the Fees page. Leave empty to show “contact the office”.",
     item: "class group",
-    defaults: real(fees),
+    defaults: builtIn(fees),
     fields: [
       { key: "group", label: "Classes", placeholder: "Class I – V", required: true },
       { key: "admission", label: "Admission fee (one time)", placeholder: "₹5,000" },
@@ -71,7 +74,7 @@ const SECTIONS: ListSection[] = [
     title: "Bus routes",
     hint: "Shown on the Fees page.",
     item: "route",
-    defaults: real(transportRoutes),
+    defaults: builtIn(transportRoutes),
     fields: [
       { key: "route", label: "Route name", placeholder: "Route 1 – Civil Lines", required: true },
       { key: "stops", label: "Stops (separate with commas)", type: "list", placeholder: "Civil Lines, Station Road, Pakka Talab" },
@@ -83,7 +86,7 @@ const SECTIONS: ListSection[] = [
     title: "Parent & student reviews",
     hint: "Shown on the home page. Only add quotes the person agreed to share.",
     item: "review",
-    defaults: real(testimonials),
+    defaults: builtIn(testimonials),
     fields: [
       { key: "quote", label: "What they said", type: "textarea", required: true },
       { key: "name", label: "Name", required: true },
@@ -95,7 +98,7 @@ const SECTIONS: ListSection[] = [
     title: "Leadership & staff",
     hint: "Shown on the About page.",
     item: "staff member",
-    defaults: real(staff),
+    defaults: builtIn(staff),
     fields: [
       { key: "name", label: "Name", required: true },
       { key: "position", label: "Position", placeholder: "PGT – Physics", required: true },
@@ -116,14 +119,15 @@ type Row = Record<string, string>;
 
 // Editing works on plain strings; lists (bus stops) are joined/split around that.
 const toRows = (section: ListSection, items: Record<string, unknown>[]): Row[] =>
-  items.map((item) =>
-    Object.fromEntries(
+  items.map((item) => ({
+    ...Object.fromEntries(
       section.fields.map((f) => {
         const v = item[f.key];
         return [f.key, Array.isArray(v) ? v.join(", ") : typeof v === "string" || typeof v === "number" ? String(v) : ""];
       }),
     ),
-  );
+    ...(item[SAMPLE] ? { [SAMPLE]: "1" } : {}),
+  }));
 
 const fromRows = (section: ListSection, rows: Row[]) =>
   rows
@@ -150,9 +154,10 @@ const ListEditor = ({ section, saved, token, onError }: { section: ListSection; 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setRows(initial()), [section.key, saved]);
 
+  // Editing an example row turns it into real content.
   const set = (i: number, key: string, value: string) => {
     setStatus("");
-    setRows((r) => r.map((row, j) => (j === i ? { ...row, [key]: value } : row)));
+    setRows((r) => r.map((row, j) => (j === i ? { ...row, [key]: value, [SAMPLE]: "" } : row)));
   };
   const move = (i: number, by: number) =>
     setRows((r) => {
@@ -161,7 +166,11 @@ const ListEditor = ({ section, saved, token, onError }: { section: ListSection; 
       return next;
     });
   const add = () => setRows((r) => [...r, Object.fromEntries(section.fields.map((f) => [f.key, ""]))]);
-  const remove = (i: number) => setRows((r) => r.filter((_, j) => j !== i));
+  const remove = (i: number) => {
+    setStatus("");
+    setRows((r) => r.filter((_, j) => j !== i));
+  };
+  const dirty = JSON.stringify(rows) !== JSON.stringify(initial());
 
   const upload = async (i: number, key: string, file?: File) => {
     if (!file) return;
@@ -176,6 +185,8 @@ const ListEditor = ({ section, saved, token, onError }: { section: ListSection; 
   };
 
   const save = async () => {
+    const examples = rows.filter((r) => r[SAMPLE]).length;
+    if (examples && !window.confirm(`${examples} example item(s) are still in the list and will appear on the live website. Save anyway? (Delete them first if they are not real.)`)) return;
     const value = fromRows(section, rows);
     const missing = value.findIndex((item) => section.fields.some((f) => f.required && !item[f.key]?.length));
     if (missing >= 0) {
@@ -194,7 +205,8 @@ const ListEditor = ({ section, saved, token, onError }: { section: ListSection; 
     <div className="space-y-4">
       {!isSaved && (
         <p className="rounded bg-muted p-3 text-sm text-muted-foreground">
-          This section still uses the built-in content. Edit below and press Save to take control of it.
+          This is what the website shows right now. Change any item, delete the ones you don’t want, then press <strong>Save changes</strong>.
+          Items marked <strong>Example</strong> are placeholders: they are hidden on the live site until you edit them.
         </p>
       )}
       {rows.length === 0 && <p className="text-muted-foreground">Nothing here yet. Press “Add {section.item}”.</p>}
@@ -203,7 +215,10 @@ const ListEditor = ({ section, saved, token, onError }: { section: ListSection; 
         <Card key={i}>
           <CardContent className="space-y-3 pt-4">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-sm font-semibold text-primary capitalize">{section.item} {i + 1}</span>
+              <span className="text-sm font-semibold text-primary capitalize">
+                {section.item} {i + 1}
+                {row[SAMPLE] && <span className="ml-2 rounded bg-yellow-300 px-1.5 py-0.5 text-[10px] normal-case text-yellow-950">Example</span>}
+              </span>
               <div className="flex gap-1">
                 <Button size="icon" variant="ghost" className="h-9 w-9" disabled={i === 0} onClick={() => move(i, -1)} aria-label="Move up">
                   <ArrowUp className="h-4 w-4" />
@@ -211,8 +226,9 @@ const ListEditor = ({ section, saved, token, onError }: { section: ListSection; 
                 <Button size="icon" variant="ghost" className="h-9 w-9" disabled={i === rows.length - 1} onClick={() => move(i, 1)} aria-label="Move down">
                   <ArrowDown className="h-4 w-4" />
                 </Button>
-                <Button size="icon" variant="ghost" className="h-9 w-9 text-red-600" onClick={() => remove(i)} aria-label={`Remove ${section.item}`}>
-                  <Trash2 className="h-4 w-4" />
+                <Button size="sm" variant="ghost" className="h-9 text-red-600" onClick={() => remove(i)} aria-label={`Delete ${section.item} ${i + 1}`}>
+                  <Trash2 className="h-4 w-4 sm:mr-1" aria-hidden="true" />
+                  <span className="hidden sm:inline">Delete</span>
                 </Button>
               </div>
             </div>
@@ -251,18 +267,29 @@ const ListEditor = ({ section, saved, token, onError }: { section: ListSection; 
         <Button variant="outline" onClick={add}>
           <Plus className="h-4 w-4 mr-1" aria-hidden="true" /> Add {section.item}
         </Button>
-        <Button onClick={save} disabled={busy}>{busy ? "Saving…" : "Save changes"}</Button>
+        <Button onClick={save} disabled={busy || (isSaved && !dirty)}>{busy ? "Saving…" : "Save changes"}</Button>
+        {dirty && (
+          <Button variant="ghost" onClick={() => setRows(initial())}>
+            Undo changes
+          </Button>
+        )}
+        {dirty && !status && <span className="text-sm text-amber-700">Unsaved changes</span>}
         {status && <span role="status" className="text-sm font-medium text-green-700">{status}</span>}
       </div>
     </div>
   );
 };
 
+const statOf = (labelKey: string) => String(stats.find((s) => s.labelKey === labelKey)?.value ?? "");
+const builtInStats = { students: statOf("stats.students"), teachers: statOf("stats.teachers"), result: statOf("stats.result") };
+
 const StatsEditor = ({ saved, token, onError }: { saved?: SiteContent["stats"]; token: string; onError: (m: string) => void }) => {
   const queryClient = useQueryClient();
-  const [values, setValues] = useState({ students: "", teachers: "", result: "", ...saved });
+  const start = () => saved ?? builtInStats;
+  const [values, setValues] = useState<NonNullable<SiteContent["stats"]>>(start);
   const [status, setStatus] = useState("");
-  useEffect(() => setValues({ students: "", teachers: "", result: "", ...saved }), [saved]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => setValues(start()), [saved]);
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();

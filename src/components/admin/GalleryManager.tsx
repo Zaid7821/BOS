@@ -152,6 +152,9 @@ const GalleryManager = ({ token, onError }: { token: string; onError: (message: 
           ))}
         </div>
         {shown.length === 0 && <p className="text-muted-foreground">No photos yet.</p>}
+        {shown.length > 0 && (
+          <p className="mb-3 text-sm text-muted-foreground">Tap a caption or category to change it (saves automatically), or use the red button to delete a photo.</p>
+        )}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {shown.map((p) => (
             <div key={p.id} className="overflow-hidden rounded-lg border bg-card">
