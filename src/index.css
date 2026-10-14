@@ -124,3 +124,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Notice ticker: scrolls continuously, pauses on hover/focus, static for reduced motion */
+@layer components {
+  .ticker-track {
+    animation: ticker-scroll 40s linear infinite;
+  }
+  .ticker:hover .ticker-track,
+  .ticker:focus-within .ticker-track {
+    animation-play-state: paused;
+  }
+  @keyframes ticker-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ticker-track { animation: none; }
+  }
+}
