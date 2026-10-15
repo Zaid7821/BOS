@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import schoolLogo from "@/assets/school-logo.jpg";
 import {
   events,
   type Sampleable,
@@ -23,6 +24,7 @@ export type Testimonial = Sampleable & { quote: string; name: string; role: stri
 export type StaffMember = Sampleable & { name: string; position: string; qualification?: string };
 export type StatsValues = { students?: string; teachers?: string; result?: string };
 export type Video = { url: string };
+export type Branding = { logo?: string };
 export type GalleryPhoto = { src: string; alt: string; category: string };
 
 /** What the admin panel can save. Every key is optional: a missing key means "use the default from site.ts". */
@@ -35,7 +37,11 @@ export type SiteContent = {
   staff?: StaffMember[];
   stats?: StatsValues;
   videos?: Video[];
+  branding?: Branding;
 };
+
+/** The logo bundled with the site, used until an admin uploads a new one. */
+export const DEFAULT_LOGO = schoolLogo;
 
 /** Pulls the video ID out of any YouTube link (watch, youtu.be, shorts, embed) or a bare ID. */
 export const youtubeId = (url: string) => {
@@ -81,6 +87,8 @@ export const useSiteContent = () => {
     testimonials: data.testimonials ?? visible(testimonials),
     staff: data.staff ?? visible(staff),
     stats: statItems,
+    logo: data.branding?.logo || DEFAULT_LOGO,
+    hasCustomLogo: Boolean(data.branding?.logo),
     videoIds: data.videos
       ? data.videos.map((v) => youtubeId(v.url)).filter((id): id is string => Boolean(id))
       : youtubeVideoIds,

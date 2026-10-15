@@ -8,21 +8,22 @@ const app = express();
 
 // ---------- Config ----------
 const PORT = process.env.PORT || 5000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
-const ADMIN_TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || "";
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || "").trim();
+const ADMIN_TOKEN_SECRET = (process.env.ADMIN_TOKEN_SECRET || "").trim();
 const TOKEN_TTL_MS = 12 * 60 * 60 * 1000; // admin login lasts 12 hours
 
 // Cloudinary: lets the admin panel upload gallery photos. Optional; without it admins can paste image links.
+// Trimmed because values pasted into hosting dashboards often pick up a trailing newline, which breaks signatures.
 const CLOUDINARY = {
-  cloudName: process.env.CLOUDINARY_CLOUD_NAME || "",
-  apiKey: process.env.CLOUDINARY_API_KEY || "",
-  apiSecret: process.env.CLOUDINARY_API_SECRET || "",
+  cloudName: (process.env.CLOUDINARY_CLOUD_NAME || "").trim(),
+  apiKey: (process.env.CLOUDINARY_API_KEY || "").trim(),
+  apiSecret: (process.env.CLOUDINARY_API_SECRET || "").trim(),
   folder: "bos-website",
 };
 const cloudinaryReady = Boolean(CLOUDINARY.cloudName && CLOUDINARY.apiKey && CLOUDINARY.apiSecret);
 
 // Website sections the admin can edit. Each is stored as one JSON value in site_content.
-const CONTENT_KEYS = ["toppers", "events", "fees", "transport", "testimonials", "staff", "stats", "videos"];
+const CONTENT_KEYS = ["toppers", "events", "fees", "transport", "testimonials", "staff", "stats", "videos", "branding"];
 const ENQUIRY_STATUSES = ["new", "contacted", "admitted", "closed"];
 
 // Photos the gallery started with, copied into the database the first time it is created.
@@ -401,6 +402,9 @@ app.put("/api/admin/content/:key", requireAdmin, async (req, res) => {
   const { value } = req.body;
   if (value === null || typeof value !== "object") {
     return res.status(400).json({ success: false, message: "Nothing to save." });
+  }
+  if (key === "branding" && !isImageUrl(clean(value.logo, 500))) {
+    return res.status(400).json({ success: false, message: "Logo must be an image link starting with https://" });
   }
   await pool.query(
     `INSERT INTO site_content (key, value, updated_at) VALUES ($1, $2, NOW())

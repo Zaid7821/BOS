@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { uploadImage } from "@/lib/upload";
-import { useSavedContent, type SiteContent } from "@/hooks/useSiteContent";
+import { DEFAULT_LOGO, useSavedContent, type SiteContent } from "@/hooks/useSiteContent";
+import { cld } from "@/lib/cloudinary";
 import { events, fees, staff, stats, testimonials, toppers, transportRoutes, youtubeVideoIds, type Sampleable } from "@/data/site";
 
 const SAMPLE = "__sample";
@@ -333,6 +334,92 @@ const StatsEditor = ({ saved, token, onError }: { saved?: SiteContent["stats"]; 
   );
 };
 
+const LogoEditor = ({ saved, token, onError }: { saved?: SiteContent["branding"]; token: string; onError: (m: string) => void }) => {
+  const queryClient = useQueryClient();
+  const [logo, setLogo] = useState(saved?.logo ?? "");
+  const [status, setStatus] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => setLogo(saved?.logo ?? ""), [saved]);
+
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ["site-content"] });
+
+  const upload = async (file?: File) => {
+    if (!file) return;
+    setBusy(true);
+    setStatus("Uploading…");
+    try {
+      const { url } = await uploadImage(file, token);
+      setLogo(url);
+      setStatus("Uploaded. Check the preview, then press Save logo.");
+    } catch (err) {
+      setStatus("");
+      onError(err instanceof Error ? err.message : "Upload failed.");
+    }
+    setBusy(false);
+  };
+
+  const save = async () => {
+    const res = await api("/api/admin/content/branding", { method: "PUT", body: JSON.stringify({ value: { logo: logo.trim() } }) }, token);
+    if (!res.success) return onError(res.message ?? "Could not save.");
+    setStatus("Saved. The new logo now shows on the website.");
+    refresh();
+  };
+
+  const reset = async () => {
+    if (!window.confirm("Go back to the original school logo?")) return;
+    const res = await api("/api/admin/content/branding", { method: "DELETE" }, token);
+    if (!res.success) return onError(res.message ?? "Could not reset.");
+    setLogo("");
+    setStatus("The original logo is back on the website.");
+    refresh();
+  };
+
+  const preview = logo.trim() || DEFAULT_LOGO;
+  const changed = logo.trim() !== (saved?.logo ?? "");
+
+  return (
+    <div className="space-y-5 max-w-lg">
+      <p className="text-sm text-muted-foreground">
+        Shown in the website header, the footer and the browser tab. Use a square image (for example 500 × 500 px), ideally a PNG
+        with a transparent or white background.
+      </p>
+
+      <div className="flex flex-wrap items-center gap-6 rounded-lg border bg-background p-4">
+        <div className="text-center">
+          <img src={cld(preview, 240)} alt="Logo preview" className="h-24 w-24 rounded object-contain" />
+          <p className="mt-1 text-xs text-muted-foreground">{logo.trim() ? (changed ? "New (not saved)" : "Current logo") : "Original logo"}</p>
+        </div>
+        {/* How it looks in the website header */}
+        <div className="flex min-w-0 items-center gap-3 rounded border px-3 py-2">
+          <img src={cld(preview, 112)} alt="" className="h-11 w-11 shrink-0 object-contain" />
+          <span className="text-sm font-bold leading-tight text-primary">Header preview</span>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" asChild disabled={busy}>
+          <label className="cursor-pointer">
+            <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
+            Upload new logo
+            <input type="file" accept="image/*" className="sr-only" disabled={busy} onChange={(e) => upload(e.target.files?.[0])} />
+          </label>
+        </Button>
+        <Button onClick={save} disabled={busy || !logo.trim() || !changed}>Save logo</Button>
+        {saved?.logo && (
+          <Button variant="ghost" onClick={reset} disabled={busy}>Use original logo</Button>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="logo-url">…or paste an image link</Label>
+        <Input id="logo-url" value={logo} placeholder="https://…" onChange={(e) => { setStatus(""); setLogo(e.target.value); }} />
+      </div>
+
+      {status && <p role="status" className="text-sm font-medium text-green-700">{status}</p>}
+    </div>
+  );
+};
+
 const ContentEditor = ({ token, onError }: { token: string; onError: (message: string) => void }) => {
   const { data: saved = {}, isLoading } = useSavedContent();
   const [active, setActive] = useState<string>(SECTIONS[0].key);
@@ -343,7 +430,7 @@ const ContentEditor = ({ token, onError }: { token: string; onError: (message: s
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 items-start">
       <nav aria-label="Website sections" className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible">
-        {[...SECTIONS.map((s) => ({ key: s.key, title: s.title })), { key: "stats", title: "Home page numbers" }].map((s) => (
+        {[{ key: "logo", title: "School logo" }, ...SECTIONS.map((s) => ({ key: s.key, title: s.title })), { key: "stats", title: "Home page numbers" }].map((s) => (
           <Button
             key={s.key}
             variant={active === s.key ? "default" : "outline"}
@@ -356,12 +443,14 @@ const ContentEditor = ({ token, onError }: { token: string; onError: (message: s
       </nav>
       <Card>
         <CardHeader>
-          <CardTitle className="text-primary">{section?.title ?? "Home page numbers"}</CardTitle>
+          <CardTitle className="text-primary">{section?.title ?? (active === "logo" ? "School logo" : "Home page numbers")}</CardTitle>
           {section && <CardDescription>{section.hint}</CardDescription>}
         </CardHeader>
         <CardContent>
           {section ? (
             <ListEditor key={section.key} section={section} saved={saved[section.key]} token={token} onError={onError} />
+          ) : active === "logo" ? (
+            <LogoEditor saved={saved.branding} token={token} onError={onError} />
           ) : (
             <StatsEditor saved={saved.stats} token={token} onError={onError} />
           )}

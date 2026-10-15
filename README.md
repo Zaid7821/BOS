@@ -17,27 +17,39 @@ npm run server                       # http://localhost:5000  (tables are create
 npm run dev                          # http://localhost:8080  (/api is proxied to the backend)
 ```
 
+## Checks
+
+```sh
+npm run check    # typecheck + lint + server syntax check + production build
+```
+
+GitHub Actions runs the same check and a secret scan on every push and pull request.
+
+## Working with AI coding agents
+
+Project rules for Codex, Cursor, Copilot, Claude, ChatGPT and other agents are in **[AGENTS.md](AGENTS.md)**
+(`CLAUDE.md`, `.cursor/rules/` and `.github/copilot-instructions.md` point to it). Give that file to any agent you use.
+
 ## Editing school content
 
-Almost everything (contact details, fees, toppers, testimonials, staff, events, gallery, disclosure) is in
-**`src/data/site.ts`**.
+Most content is edited by school staff in the **admin panel** (`/admin`), with no code changes:
 
-Items marked `isSample: true` are placeholders. They show with a yellow "Sample" tag in `npm run dev` and are
-hidden automatically in the production build. Replace them with real data and remove `isSample` to publish them.
+- **Enquiries:** search, filter by status, add office notes, call / WhatsApp, delete, export to Excel
+- **Notices:** post, edit, hide, mark important, delete
+- **Messages:** read and delete contact form messages
+- **Gallery:** upload photos from a phone or computer, edit captions and categories, delete
+- **Website content:** school logo, toppers, events, fees, bus routes, testimonials, staff, home page numbers, YouTube videos
+
+`src/data/site.ts` holds fixed school details (name, contact details, address, academics) and the built-in content that is
+shown until an admin saves a section. Items marked `isSample: true` are placeholders: they show with a yellow "Sample"
+tag in `npm run dev` and are hidden in the production build.
 
 To add Hindi translations for more text, edit `src/lib/i18n.tsx`.
 
-## Admin dashboard
-
-Open `/admin` and log in with `ADMIN_PASSWORD`. Staff can:
-
-- see admission enquiries and mark them contacted / admitted / closed
-- post, hide, highlight or delete notices (shown in the scrolling notice bar and on the Notices page)
-- read and delete contact form messages
-
 ## Deploying
 
-- **Frontend (Vercel):** set `VITE_API_BASE_URL` to your backend URL, e.g. `https://your-api.onrender.com`.
-- **Backend (Render etc.):** set `DATABASE_URL`, `DATABASE_SSL=true` for hosted Postgres, `ADMIN_PASSWORD`,
-  `ADMIN_TOKEN_SECRET`, and `CORS_ORIGIN` (your website URL).
-- Never commit `server/.env`.
+- **Backend (Render etc.):** set the variables listed in `server/.env.example` (`DATABASE_URL`, `DATABASE_SSL=true`,
+  `CORS_ORIGIN`, `ADMIN_PASSWORD`, `ADMIN_TOKEN_SECRET`, `CLOUDINARY_*`). Build `npm install`, start `npm run server`.
+- **Frontend:** set `VITE_API_BASE_URL` to the backend URL, build with `npm run build`, publish `dist/`, and rewrite all
+  routes to `/index.html` (`vercel.json` does this on Vercel).
+- Never commit `.env` or `server/.env`. Paste values into the host's dashboard without trailing spaces or newlines.

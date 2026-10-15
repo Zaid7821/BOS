@@ -2,7 +2,8 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Phone, Mail, MapPin, Facebook, Youtube, Instagram, Languages, MessageCircle, Send } from "lucide-react";
 import { useEffect, useState } from "react";
-import schoolLogo from "@/assets/school-logo.jpg";
+import { cld } from "@/lib/cloudinary";
+import { useSiteContent } from "@/hooks/useSiteContent";
 import { SCHOOL, stages } from "@/data/site";
 import { useLanguage, type TKey } from "@/lib/i18n";
 import NoticeTicker from "./NoticeTicker";
@@ -56,6 +57,17 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const { lang, t } = useLanguage();
   useScrollOnNavigate();
   const { pathname } = useLocation();
+  const { logo, hasCustomLogo } = useSiteContent();
+
+  // Use the admin-uploaded logo as the browser tab icon too.
+  useEffect(() => {
+    if (!hasCustomLogo) return;
+    const icon = document.querySelector<HTMLLinkElement>("link[rel='icon']");
+    if (icon) {
+      icon.href = cld(logo, 64);
+      icon.removeAttribute("type");
+    }
+  }, [logo, hasCustomLogo]);
 
   const schoolName = lang === "hi" ? SCHOOL.nameHi : SCHOOL.name;
   const goApply = () => navigate("/admissions#enquiry");
@@ -102,7 +114,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           {/* Main navigation */}
           <div className="flex items-center justify-between gap-4 py-3">
             <Link to="/" className="flex items-center gap-3 min-w-0">
-              <img src={schoolLogo} alt="" className="h-11 w-11 md:h-14 md:w-14 shrink-0 object-contain" />
+              <img src={cld(logo, 112)} alt="" className="h-11 w-11 md:h-14 md:w-14 shrink-0 object-contain" />
               <div className="min-w-0">
                 <p className="text-[15px] sm:text-base md:text-xl font-bold leading-tight text-primary">{schoolName}</p>
                 <p className="hidden md:block text-sm text-muted-foreground">{t("header.affiliated")}</p>
@@ -197,7 +209,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-12 w-12 shrink-0 rounded bg-white flex items-center justify-center overflow-hidden">
-                  <img src={schoolLogo} alt="" className="h-10 w-10 object-contain" />
+                  <img src={cld(logo, 80)} alt="" className="h-10 w-10 object-contain" loading="lazy" />
                 </div>
                 <p className="text-lg font-semibold leading-tight">{schoolName}</p>
               </div>
