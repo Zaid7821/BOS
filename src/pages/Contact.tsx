@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MapPin, Phone, Mail, Clock, Send, MessageCircle, Navigation } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { SCHOOL } from "@/data/site";
+import { useSchool } from "@/hooks/useSiteContent";
 import { api } from "@/lib/api";
 import { useLanguage } from "@/lib/i18n";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -17,11 +17,12 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 const emptyForm = { name: "", email: "", phone: "", subject: "", message: "" };
 
 const Contact = () => {
+  const school = useSchool();
   const { t } = useLanguage();
   usePageTitle("Contact");
 
-  const mapQuery = encodeURIComponent(SCHOOL.mapQuery);
-  const whatsappHref = `https://wa.me/${SCHOOL.whatsapp}?text=${encodeURIComponent(t("whatsapp.message"))}`;
+  const mapQuery = encodeURIComponent(school.mapQuery);
+  const whatsappHref = `https://wa.me/${school.whatsapp}?text=${encodeURIComponent(t("whatsapp.message"))}`;
 
   const [form, setForm] = useState(emptyForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,7 +62,7 @@ const Contact = () => {
         <section className="container mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
             <Button variant="hero" size="lg" className="h-auto py-4 text-base" asChild>
-              <a href={`tel:${SCHOOL.phone}`}>
+              <a href={`tel:${school.phone}`}>
                 <Phone className="h-5 w-5 mr-2" aria-hidden="true" />
                 {t("cta.call")}
               </a>
@@ -86,15 +87,15 @@ const Contact = () => {
                 <MapPin className="h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
                 <div>
                   <h2 className="font-semibold text-primary">Address</h2>
-                  <p className="text-muted-foreground">{SCHOOL.addressLines.join(", ")}</p>
+                  <p className="text-muted-foreground">{school.addressLines.join(", ")}</p>
                 </div>
               </div>
               <div className="flex gap-4">
                 <Phone className="h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
                 <div>
                   <h2 className="font-semibold text-primary">Phone & WhatsApp</h2>
-                  <a href={`tel:${SCHOOL.phone}`} className="text-muted-foreground hover:text-primary hover:underline">
-                    {SCHOOL.phoneDisplay}
+                  <a href={`tel:${school.phone}`} className="text-muted-foreground hover:text-primary hover:underline">
+                    {school.phoneDisplay}
                   </a>
                 </div>
               </div>
@@ -102,8 +103,8 @@ const Contact = () => {
                 <Mail className="h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
                 <div>
                   <h2 className="font-semibold text-primary">Email</h2>
-                  <a href={`mailto:${SCHOOL.email}`} className="text-muted-foreground hover:text-primary hover:underline">
-                    {SCHOOL.email}
+                  <a href={`mailto:${school.email}`} className="text-muted-foreground hover:text-primary hover:underline">
+                    {school.email}
                   </a>
                 </div>
               </div>
@@ -111,7 +112,7 @@ const Contact = () => {
                 <Clock className="h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
                 <div>
                   <h2 className="font-semibold text-primary">Office hours</h2>
-                  {SCHOOL.officeHours.map((h) => (
+                  {school.officeHours.map((h) => (
                     <p key={h} className="text-muted-foreground">{h}</p>
                   ))}
                 </div>
@@ -120,7 +121,7 @@ const Contact = () => {
 
             <div className="overflow-hidden rounded-lg border border-primary/10 shadow-school-sm min-h-[260px] md:min-h-[320px]">
               <iframe
-                title={`Map showing ${SCHOOL.name}`}
+                title={`Map showing ${school.name}`}
                 src={`https://maps.google.com/maps?q=${mapQuery}&z=15&output=embed`}
                 className="h-full min-h-[260px] md:min-h-[320px] w-full"
                 loading="lazy"

@@ -4,11 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Award, BookOpen, Users, ShieldCheck } from "lucide-react";
 import StatsCounter from "@/components/StatsCounter";
 import SampleTag from "@/components/SampleTag";
-import { SCHOOL } from "@/data/site";
-import { useSiteContent } from "@/hooks/useSiteContent";
+import { useSchool, useSiteContent } from "@/hooks/useSiteContent";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 const About = () => {
+  const school = useSchool();
   usePageTitle("About Us");
   const staffList = useSiteContent().staff;
 
@@ -19,7 +19,7 @@ const About = () => {
         <section className="bg-gradient-subtle py-10 md:py-16">
           <div className="container mx-auto px-4 text-center">
             <Badge variant="secondary" className="mb-6">About Our School</Badge>
-            <h1 className="text-3xl md:text-5xl font-bold text-primary mb-4 md:mb-6">Excellence in education since {SCHOOL.founded}</h1>
+            <h1 className="text-3xl md:text-5xl font-bold text-primary mb-4 md:mb-6">Excellence in education since {school.founded}</h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
               Our history, our values, and the people who teach our students.
             </p>
@@ -32,18 +32,24 @@ const About = () => {
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6">Our history</h2>
               <div className="space-y-4 text-muted-foreground leading-relaxed max-w-prose">
+                {school.aboutHistory ? (
+                  school.aboutHistory.map((para, i) => <p key={i} className="whitespace-pre-line">{para}</p>)
+                ) : (
+                <>
                 <p>
-                  Founded in {SCHOOL.founded} in Pakka Talab, Fatehpur, Brilliant Oriental School began with a clear aim: to give
+                  Founded in {school.founded} in Pakka Talab, Fatehpur, Brilliant Oriental School began with a clear aim: to give
                   children of the region a strong education together with good character and values.
                 </p>
                 <p>
-                  Over the years the school has grown steadily, and it is now <strong className="text-foreground">{SCHOOL.name}</strong>,
+                  Over the years the school has grown steadily, and it is now <strong className="text-foreground">{school.name}</strong>,
                   affiliated to the Central Board of Secondary Education (CBSE), New Delhi, offering classes from Nursery to Class XII.
                 </p>
                 <p>
                   Our students are prepared for the CBSE Class X and Class XII board examinations, and for the colleges and careers
                   that follow.
                 </p>
+                </>
+                )}
               </div>
             </div>
 
@@ -56,7 +62,7 @@ const About = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between border-b pb-2">
                   <span className="text-muted-foreground">Affiliation no.</span>
-                  <span className="font-bold text-primary">{SCHOOL.affiliationNo}</span>
+                  <span className="font-bold text-primary">{school.affiliationNo}</span>
                 </div>
                 <div className="flex justify-between gap-4 border-b pb-2">
                   <span className="text-muted-foreground">Level</span>
@@ -64,7 +70,7 @@ const About = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Established</span>
-                  <span className="font-semibold">{SCHOOL.founded}</span>
+                  <span className="font-semibold">{school.founded}</span>
                 </div>
               </CardContent>
             </Card>

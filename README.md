@@ -38,10 +38,15 @@ Most content is edited by school staff in the **admin panel** (`/admin`), with n
 - **Notices:** post, edit, hide, mark important, delete
 - **Messages:** read and delete contact form messages
 - **Gallery:** upload photos from a phone or computer, edit captions and categories, delete
-- **Website content:** school logo, toppers, events, fees, bus routes, testimonials, staff, home page numbers, YouTube videos
+- **Website content:** school details (phone, WhatsApp, email, address, office hours, social links, chairman, pictures,
+  prospectus, About history), page text in English and Hindi, logo, toppers, events, fees, bus routes, testimonials,
+  staff, home page numbers, YouTube videos, admission steps, documents, age criteria, enquiry-form classes, stages,
+  streams and the academic calendar
 
-`src/data/site.ts` holds fixed school details (name, contact details, address, academics) and the built-in content that is
-shown until an admin saves a section. Items marked `isSample: true` are placeholders: they show with a yellow "Sample"
+Staff reach the admin panel from the **Staff login** link in the website footer.
+
+`src/data/site.ts` holds the fixed school identity (name, affiliation number, founding year) and the built-in content that
+is shown until an admin saves a section. Items marked `isSample: true` are placeholders: they show with a yellow "Sample"
 tag in `npm run dev` and are hidden in the production build.
 
 To add Hindi translations for more text, edit `src/lib/i18n.tsx`.

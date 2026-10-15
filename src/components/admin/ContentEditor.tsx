@@ -8,16 +8,35 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { uploadImage } from "@/lib/upload";
-import { DEFAULT_LOGO, useSavedContent, type SiteContent } from "@/hooks/useSiteContent";
+import { DEFAULT_LOGO, useSavedContent, useSchool, type SchoolDetails, type SiteContent } from "@/hooks/useSiteContent";
+import { DEFAULT_TEXTS, EDITABLE_TEXTS } from "@/lib/i18n";
 import { cld } from "@/lib/cloudinary";
-import { events, fees, staff, stats, testimonials, toppers, transportRoutes, youtubeVideoIds, type Sampleable } from "@/data/site";
+import {
+  admissionDocuments,
+  admissionSteps,
+  ageCriteria,
+  classOptions,
+  events,
+  fees,
+  sessionCalendar,
+  stages,
+  staff,
+  stats,
+  streams,
+  testimonials,
+  toppers,
+  transportRoutes,
+  youtubeVideoIds,
+  type Sampleable,
+} from "@/data/site";
 
 const SAMPLE = "__sample";
 
 type FieldType = "text" | "textarea" | "list" | "image";
 type Field = { key: string; label: string; type?: FieldType; placeholder?: string; required?: boolean };
 type ListSection = {
-  key: Exclude<keyof SiteContent, "stats">;
+  key: Exclude<keyof SiteContent, "stats" | "branding" | "school" | "texts">;
+  group: string;
   title: string;
   hint: string;
   item: string;
@@ -32,6 +51,7 @@ const builtIn = <T extends Sampleable>(rows: T[]) => rows.map(({ isSample, ...re
 const SECTIONS: ListSection[] = [
   {
     key: "toppers",
+    group: "Home & About",
     title: "Board toppers",
     hint: "Shown on the home page.",
     item: "topper",
@@ -46,6 +66,7 @@ const SECTIONS: ListSection[] = [
   },
   {
     key: "events",
+    group: "Events & media",
     title: "Upcoming events",
     hint: "Shown on the Notices & Events page.",
     item: "event",
@@ -59,6 +80,7 @@ const SECTIONS: ListSection[] = [
   },
   {
     key: "fees",
+    group: "Admissions & fees",
     title: "Fee structure",
     hint: "Shown on the Fees page. Leave empty to show “contact the office”.",
     item: "class group",
@@ -72,6 +94,7 @@ const SECTIONS: ListSection[] = [
   },
   {
     key: "transport",
+    group: "Admissions & fees",
     title: "Bus routes",
     hint: "Shown on the Fees page.",
     item: "route",
@@ -84,6 +107,7 @@ const SECTIONS: ListSection[] = [
   },
   {
     key: "testimonials",
+    group: "Home & About",
     title: "Parent & student reviews",
     hint: "Shown on the home page. Only add quotes the person agreed to share.",
     item: "review",
@@ -96,6 +120,7 @@ const SECTIONS: ListSection[] = [
   },
   {
     key: "staff",
+    group: "Home & About",
     title: "Leadership & staff",
     hint: "Shown on the About page.",
     item: "staff member",
@@ -108,11 +133,92 @@ const SECTIONS: ListSection[] = [
   },
   {
     key: "videos",
+    group: "Events & media",
     title: "YouTube videos",
     hint: "Shown on the Gallery page. Paste the link from the YouTube app's Share button.",
     item: "video",
     defaults: youtubeVideoIds.map((id) => ({ url: `https://youtu.be/${id}` })),
     fields: [{ key: "url", label: "YouTube link", placeholder: "https://youtu.be/…", required: true }],
+  },
+  {
+    key: "admissionSteps",
+    group: "Admissions & fees",
+    title: "How to apply (steps)",
+    hint: "The numbered steps on the Admissions page.",
+    item: "step",
+    defaults: admissionSteps,
+    fields: [
+      { key: "title", label: "Step title", required: true },
+      { key: "description", label: "What the parent should do", type: "textarea" },
+    ],
+  },
+  {
+    key: "admissionDocuments",
+    group: "Admissions & fees",
+    title: "Documents required",
+    hint: "The checklist on the Admissions page.",
+    item: "document",
+    defaults: admissionDocuments.map((text) => ({ text })),
+    fields: [{ key: "text", label: "Document", placeholder: "Birth certificate", required: true }],
+  },
+  {
+    key: "ageCriteria",
+    group: "Admissions & fees",
+    title: "Age criteria",
+    hint: "The age table on the Admissions page.",
+    item: "class",
+    defaults: ageCriteria,
+    fields: [
+      { key: "className", label: "Class", placeholder: "Nursery", required: true },
+      { key: "age", label: "Minimum age", placeholder: "3+ years as on 31st March", required: true },
+    ],
+  },
+  {
+    key: "classOptions",
+    group: "Admissions & fees",
+    title: "Classes in enquiry form",
+    hint: "The classes parents can choose in the admission enquiry form. Remove classes with no seats.",
+    item: "class",
+    defaults: classOptions.map((name) => ({ name })),
+    fields: [{ key: "name", label: "Class", placeholder: "Class VI", required: true }],
+  },
+  {
+    key: "stages",
+    group: "Academics",
+    title: "Stages of schooling",
+    hint: "The stage cards on the Academics page (also listed in the footer).",
+    item: "stage",
+    defaults: stages.map((st) => ({ ...st, subjects: st.subjects.filter((x) => x !== "See streams below") })),
+    fields: [
+      { key: "level", label: "Stage", placeholder: "Primary", required: true },
+      { key: "classes", label: "Classes", placeholder: "Class I – V", required: true },
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "subjects", label: "Subjects (separate with commas)", type: "list" },
+    ],
+  },
+  {
+    key: "streams",
+    group: "Academics",
+    title: "Class XI–XII streams",
+    hint: "The stream cards on the Academics page.",
+    item: "stream",
+    defaults: streams,
+    fields: [
+      { key: "name", label: "Stream", placeholder: "Science (PCM)", required: true },
+      { key: "subjects", label: "Subjects (separate with commas)", type: "list", required: true },
+    ],
+  },
+  {
+    key: "sessionCalendar",
+    group: "Academics",
+    title: "Academic calendar",
+    hint: "The “session at a glance” timeline on the Academics page.",
+    item: "entry",
+    defaults: sessionCalendar,
+    fields: [
+      { key: "term", label: "What happens", placeholder: "Half-yearly examinations", required: true },
+      { key: "period", label: "When", placeholder: "September – October", required: true },
+    ],
   },
 ];
 
@@ -420,35 +526,296 @@ const LogoEditor = ({ saved, token, onError }: { saved?: SiteContent["branding"]
   );
 };
 
+type SchoolField = { key: keyof SchoolDetails; label: string; hint?: string; type?: "text" | "lines" | "paragraphs" | "image" | "url" };
+
+const SCHOOL_FIELDS: { group: string; fields: SchoolField[] }[] = [
+  {
+    group: "Contact",
+    fields: [
+      { key: "phoneDisplay", label: "Phone number", hint: "As parents should see it, e.g. +91 95653 13000" },
+      { key: "whatsapp", label: "WhatsApp number", hint: "With country code, e.g. 919565313000" },
+      { key: "email", label: "Email" },
+      { key: "addressLines", label: "Full address", type: "lines", hint: "One line per row" },
+      { key: "addressShort", label: "Short address", hint: "Shown in the header, e.g. Pakka Talab, Fatehpur, UP" },
+      { key: "mapQuery", label: "Google Maps search text", hint: "What to search on the map, e.g. Brilliant Oriental School, Fatehpur" },
+      { key: "officeHours", label: "Office hours", type: "lines", hint: "One line per row" },
+    ],
+  },
+  {
+    group: "Social media",
+    fields: [
+      { key: "facebook", label: "Facebook page link", type: "url" },
+      { key: "youtube", label: "YouTube channel link", type: "url" },
+      { key: "instagram", label: "Instagram link", type: "url" },
+    ],
+  },
+  {
+    group: "Chairman",
+    fields: [
+      { key: "chairmanName", label: "Chairman's name" },
+      { key: "chairmanPhoto", label: "Chairman's photo", type: "image" },
+    ],
+  },
+  {
+    group: "Pictures & documents",
+    fields: [
+      { key: "heroImage", label: "Home page main picture", type: "image", hint: "Wide photo of the school, at least 1600 px wide" },
+      { key: "visionImage", label: "Picture next to Vision & Mission", type: "image" },
+      { key: "prospectusUrl", label: "Prospectus link", type: "url", hint: "Upload the PDF to Google Drive, set sharing to “Anyone with the link”, and paste the link" },
+    ],
+  },
+  {
+    group: "About page",
+    fields: [
+      { key: "aboutHistory", label: "“Our history” text", type: "paragraphs", hint: "Leave an empty line between paragraphs" },
+    ],
+  },
+];
+
+const SchoolEditor = ({ saved, token, onError }: { saved?: SchoolDetails; token: string; onError: (m: string) => void }) => {
+  const queryClient = useQueryClient();
+  const current = useSchool();
+  // Start from what the site shows now, so admins edit rather than retype.
+  const fromSite = (): Record<string, string> => ({
+    phoneDisplay: current.phoneDisplay,
+    whatsapp: current.whatsapp,
+    email: current.email,
+    addressLines: current.addressLines.join("\n"),
+    addressShort: current.addressShort,
+    mapQuery: current.mapQuery,
+    officeHours: current.officeHours.join("\n"),
+    facebook: current.social.facebook,
+    youtube: current.social.youtube,
+    instagram: current.social.instagram,
+    chairmanName: current.chairman.name,
+    chairmanPhoto: current.chairman.photo,
+    heroImage: current.heroImage.startsWith("http") ? current.heroImage : "",
+    visionImage: current.visionImage,
+    prospectusUrl: current.prospectusUrl.startsWith("http") ? current.prospectusUrl : "",
+    aboutHistory: current.aboutHistory?.join("\n\n") ?? "",
+  });
+  const [values, setValues] = useState(fromSite);
+  const [status, setStatus] = useState("");
+  const [uploading, setUploading] = useState<string | null>(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => setValues(fromSite()), [saved]);
+
+  const set = (key: string, value: string) => {
+    setStatus("");
+    setValues((v) => ({ ...v, [key]: value }));
+  };
+
+  const upload = async (key: string, file?: File) => {
+    if (!file) return;
+    setUploading(key);
+    try {
+      set(key, (await uploadImage(file, token)).url);
+    } catch (err) {
+      onError(err instanceof Error ? err.message : "Upload failed.");
+    }
+    setUploading(null);
+  };
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const lines = (v: string) => v.split("\n").map((l) => l.trim()).filter(Boolean);
+    const value: SchoolDetails = {
+      ...(values as Record<string, string>),
+      addressLines: lines(values.addressLines),
+      officeHours: lines(values.officeHours),
+    };
+    const res = await api("/api/admin/content/school", { method: "PUT", body: JSON.stringify({ value }) }, token);
+    if (!res.success) return onError(res.message ?? "Could not save.");
+    setStatus("Saved. The website now shows the new details.");
+    queryClient.invalidateQueries({ queryKey: ["site-content"] });
+  };
+
+  return (
+    <form onSubmit={save} className="space-y-8">
+      {SCHOOL_FIELDS.map((g) => (
+        <fieldset key={g.group} className="space-y-4">
+          <legend className="mb-2 text-base font-semibold text-primary">{g.group}</legend>
+          {g.fields.map((f) => {
+            const id = `school-${f.key}`;
+            const v = values[f.key] ?? "";
+            return (
+              <div key={f.key} className="space-y-1.5">
+                <Label htmlFor={id}>{f.label}</Label>
+                {f.type === "lines" || f.type === "paragraphs" ? (
+                  <Textarea id={id} rows={f.type === "paragraphs" ? 8 : 3} value={v} onChange={(e) => set(f.key, e.target.value)} />
+                ) : f.type === "image" ? (
+                  <div className="flex items-center gap-2">
+                    {v && <img src={cld(v, 160)} alt="" className="h-12 w-12 shrink-0 rounded object-cover" />}
+                    <Input id={id} value={v} placeholder="https://… or upload" onChange={(e) => set(f.key, e.target.value)} />
+                    <Button type="button" size="icon" variant="outline" className="shrink-0" asChild aria-label={`Upload ${f.label}`}>
+                      <label className="cursor-pointer">
+                        <Upload className="h-4 w-4" aria-hidden="true" />
+                        <input type="file" accept="image/*" className="sr-only" disabled={uploading !== null} onChange={(e) => upload(f.key, e.target.files?.[0])} />
+                      </label>
+                    </Button>
+                  </div>
+                ) : (
+                  <Input id={id} type={f.type === "url" ? "url" : "text"} value={v} onChange={(e) => set(f.key, e.target.value)} />
+                )}
+                {uploading === f.key && <p className="text-xs text-muted-foreground">Uploading…</p>}
+                {f.hint && <p className="text-xs text-muted-foreground">{f.hint}</p>}
+              </div>
+            );
+          })}
+        </fieldset>
+      ))}
+      <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center gap-3 border-t bg-muted/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+        <Button type="submit" disabled={uploading !== null}>Save school details</Button>
+        {status && <span role="status" className="text-sm font-medium text-green-700">{status}</span>}
+      </div>
+    </form>
+  );
+};
+
+const TextsEditor = ({ saved, token, onError }: { saved?: SiteContent["texts"]; token: string; onError: (m: string) => void }) => {
+  const queryClient = useQueryClient();
+  const keys = EDITABLE_TEXTS.flatMap((g) => g.items.map((i) => i.key));
+  const fromSite = () => ({
+    en: Object.fromEntries(keys.map((k) => [k, saved?.en?.[k] || DEFAULT_TEXTS.en[k]])),
+    hi: Object.fromEntries(keys.map((k) => [k, saved?.hi?.[k] || DEFAULT_TEXTS.hi[k]])),
+  });
+  const [values, setValues] = useState(fromSite);
+  const [status, setStatus] = useState("");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => setValues(fromSite()), [saved]);
+
+  const set = (lang: "en" | "hi", key: string, value: string) => {
+    setStatus("");
+    setValues((v) => ({ ...v, [lang]: { ...v[lang], [key]: value } }));
+  };
+
+  const save = async () => {
+    // Only store text that differs from the built-in version, so future built-in fixes still show elsewhere.
+    const changed = (lang: "en" | "hi") =>
+      Object.fromEntries(keys.filter((k) => values[lang][k].trim() && values[lang][k].trim() !== DEFAULT_TEXTS[lang][k]).map((k) => [k, values[lang][k].trim()]));
+    const res = await api("/api/admin/content/texts", { method: "PUT", body: JSON.stringify({ value: { en: changed("en"), hi: changed("hi") } }) }, token);
+    if (!res.success) return onError(res.message ?? "Could not save.");
+    setStatus("Saved. The website now shows the new text.");
+    queryClient.invalidateQueries({ queryKey: ["site-content"] });
+  };
+
+  const resetOne = (key: string) => {
+    set("en", key, DEFAULT_TEXTS.en[key as keyof typeof DEFAULT_TEXTS.en]);
+    set("hi", key, DEFAULT_TEXTS.hi[key as keyof typeof DEFAULT_TEXTS.hi]);
+  };
+
+  return (
+    <div className="space-y-8">
+      <p className="text-sm text-muted-foreground">
+        Each text has an English and a Hindi version. Visitors see the one matching the language button at the top of the site.
+      </p>
+      {EDITABLE_TEXTS.map((g) => (
+        <section key={g.group} className="space-y-4">
+          <h3 className="text-base font-semibold text-primary">{g.group}</h3>
+          {g.items.map((item) => {
+            const Field = item.long ? Textarea : Input;
+            const edited = values.en[item.key] !== DEFAULT_TEXTS.en[item.key] || values.hi[item.key] !== DEFAULT_TEXTS.hi[item.key];
+            return (
+              <div key={item.key} className="rounded-lg border bg-background p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium">{item.label}</span>
+                  {edited && (
+                    <button type="button" className="text-xs text-primary underline" onClick={() => resetOne(item.key)}>
+                      Use original text
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <Label htmlFor={`${item.key}-en`} className="text-xs text-muted-foreground">English</Label>
+                    <Field id={`${item.key}-en`} value={values.en[item.key]} onChange={(e) => set("en", item.key, e.target.value)} {...(item.long ? { rows: 3 } : {})} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`${item.key}-hi`} className="text-xs text-muted-foreground">हिंदी</Label>
+                    <Field id={`${item.key}-hi`} lang="hi" value={values.hi[item.key]} onChange={(e) => set("hi", item.key, e.target.value)} {...(item.long ? { rows: 3 } : {})} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </section>
+      ))}
+      <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center gap-3 border-t bg-muted/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+        <Button onClick={save}>Save text</Button>
+        {status && <span role="status" className="text-sm font-medium text-green-700">{status}</span>}
+      </div>
+    </div>
+  );
+};
+
+// Editors that are not simple lists, shown at the top of the menu.
+const SPECIAL = [
+  { key: "school", title: "School details", hint: "Phone, WhatsApp, email, address, office hours, social links, chairman, pictures and prospectus." },
+  { key: "texts", title: "Page text (English & Hindi)", hint: "Headings and paragraphs on the home page, footer and WhatsApp message." },
+  { key: "logo", title: "School logo", hint: "" },
+  { key: "stats", title: "Home page numbers", hint: "" },
+];
+
+const MENU = [
+  { group: "School", items: SPECIAL.map(({ key, title }) => ({ key, title })) },
+  ...["Home & About", "Admissions & fees", "Academics", "Events & media"].map((group) => ({
+    group,
+    items: SECTIONS.filter((s) => s.group === group).map(({ key, title }) => ({ key, title })),
+  })),
+];
+
 const ContentEditor = ({ token, onError }: { token: string; onError: (message: string) => void }) => {
   const { data: saved = {}, isLoading } = useSavedContent();
-  const [active, setActive] = useState<string>(SECTIONS[0].key);
+  const [active, setActive] = useState<string>("school");
   const section = SECTIONS.find((s) => s.key === active);
+  const special = SPECIAL.find((s) => s.key === active);
 
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 items-start">
-      <nav aria-label="Website sections" className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible">
-        {[{ key: "logo", title: "School logo" }, ...SECTIONS.map((s) => ({ key: s.key, title: s.title })), { key: "stats", title: "Home page numbers" }].map((s) => (
-          <Button
-            key={s.key}
-            variant={active === s.key ? "default" : "outline"}
-            className="shrink-0 justify-start"
-            onClick={() => setActive(s.key)}
-          >
-            {s.title}
-          </Button>
+    <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6 items-start">
+      {/* Phones: one dropdown. Large screens: grouped list. */}
+      <div className="lg:hidden">
+        <Label htmlFor="section-picker" className="mb-1.5 block">Choose what to edit</Label>
+        <select
+          id="section-picker"
+          value={active}
+          onChange={(e) => setActive(e.target.value)}
+          className="h-12 w-full rounded-md border bg-background px-3 text-base"
+        >
+          {MENU.map((g) => (
+            <optgroup key={g.group} label={g.group}>
+              {g.items.map((i) => <option key={i.key} value={i.key}>{i.title}</option>)}
+            </optgroup>
+          ))}
+        </select>
+      </div>
+      <nav aria-label="Website sections" className="hidden lg:block space-y-4">
+        {MENU.map((g) => (
+          <div key={g.group}>
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{g.group}</p>
+            <div className="flex flex-col gap-1">
+              {g.items.map((i) => (
+                <Button key={i.key} size="sm" variant={active === i.key ? "default" : "ghost"} className="justify-start" onClick={() => setActive(i.key)}>
+                  {i.title}
+                </Button>
+              ))}
+            </div>
+          </div>
         ))}
       </nav>
       <Card>
         <CardHeader>
-          <CardTitle className="text-primary">{section?.title ?? (active === "logo" ? "School logo" : "Home page numbers")}</CardTitle>
-          {section && <CardDescription>{section.hint}</CardDescription>}
+          <CardTitle className="text-primary">{section?.title ?? special?.title}</CardTitle>
+          {(section?.hint || special?.hint) && <CardDescription>{section?.hint || special?.hint}</CardDescription>}
         </CardHeader>
         <CardContent>
           {section ? (
             <ListEditor key={section.key} section={section} saved={saved[section.key]} token={token} onError={onError} />
+          ) : active === "school" ? (
+            <SchoolEditor saved={saved.school} token={token} onError={onError} />
+          ) : active === "texts" ? (
+            <TextsEditor saved={saved.texts} token={token} onError={onError} />
           ) : active === "logo" ? (
             <LogoEditor saved={saved.branding} token={token} onError={onError} />
           ) : (

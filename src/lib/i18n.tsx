@@ -1,9 +1,11 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useSavedContent } from "@/hooks/useSiteContent";
 
 /**
  * English / Hindi toggle.
  * Covers the site header, menu, footer, home page, forms and buttons.
  * To translate more text: add a key to both `en` and `hi`, then use t("your.key").
+ * Keys listed in EDITABLE_TEXTS can also be changed by admins (Admin > Website content > Page text).
  */
 
 export type Lang = "en" | "hi";
@@ -85,6 +87,7 @@ const en = {
   "footer.academics": "Academics",
   "footer.connect": "Connect With Us",
   "footer.rights": "All rights reserved.",
+  "footer.staffLogin": "Staff login",
   "whatsapp.message": "Hello, I would like information about admission at Brilliant Oriental Senior Secondary School.",
 };
 
@@ -167,12 +170,76 @@ const hi: Dict = {
   "footer.academics": "शिक्षा",
   "footer.connect": "हमसे जुड़ें",
   "footer.rights": "सर्वाधिकार सुरक्षित।",
+  "footer.staffLogin": "स्टाफ लॉगिन",
   "whatsapp.message": "नमस्ते, मुझे ब्रिलियंट ओरिएंटल सीनियर सेकेंडरी स्कूल में प्रवेश की जानकारी चाहिए।",
 };
 
 export type TKey = keyof typeof en;
 
 const dictionaries: Record<Lang, Dict> = { en, hi };
+
+/** Built-in English and Hindi text, used by the admin editor to show defaults. */
+export const DEFAULT_TEXTS = dictionaries;
+
+/** Text admins may edit, grouped as they appear on the site. Labels are shown in the admin panel. */
+// eslint-disable-next-line react-refresh/only-export-components
+export const EDITABLE_TEXTS: { group: string; items: { key: TKey; label: string; long?: boolean }[] }[] = [
+  {
+    group: "Home page – top banner",
+    items: [
+      { key: "home.badge", label: "Small badge above the school name" },
+      { key: "home.welcome", label: "Line above the school name" },
+      { key: "home.tagline", label: "Tagline under the school name", long: true },
+    ],
+  },
+  {
+    group: "Home page – vision & mission",
+    items: [
+      { key: "home.visionTitle", label: "Section heading" },
+      { key: "home.visionText", label: "Vision", long: true },
+      { key: "home.missionText", label: "Mission", long: true },
+    ],
+  },
+  {
+    group: "Home page – chairman's message",
+    items: [
+      { key: "home.chairmanTitle", label: "Section heading" },
+      { key: "home.chairmanP1", label: "Paragraph 1", long: true },
+      { key: "home.chairmanP2", label: "Paragraph 2", long: true },
+      { key: "home.chairmanP3", label: "Paragraph 3", long: true },
+      { key: "home.chairmanRole", label: "Title under the name" },
+    ],
+  },
+  {
+    group: "Home page – why parents choose us",
+    items: [
+      { key: "home.whyTitle", label: "Section heading" },
+      { key: "home.why1Title", label: "Point 1 heading" },
+      { key: "home.why1Text", label: "Point 1 text", long: true },
+      { key: "home.why2Title", label: "Point 2 heading" },
+      { key: "home.why2Text", label: "Point 2 text", long: true },
+      { key: "home.why3Title", label: "Point 3 heading" },
+      { key: "home.why3Text", label: "Point 3 text", long: true },
+    ],
+  },
+  {
+    group: "Home page – other headings",
+    items: [
+      { key: "home.toppersTitle", label: "Toppers heading" },
+      { key: "home.testimonialsTitle", label: "Reviews heading" },
+      { key: "home.ctaTitle", label: "Admission box heading" },
+      { key: "home.ctaText", label: "Admission box text", long: true },
+    ],
+  },
+  {
+    group: "Footer & WhatsApp",
+    items: [
+      { key: "footer.about", label: "Footer line under the school name", long: true },
+      { key: "whatsapp.message", label: "Message pre-filled when parents tap WhatsApp", long: true },
+      { key: "notice.label", label: "Label of the scrolling notice bar" },
+    ],
+  },
+];
 
 type Ctx = { lang: Lang; setLang: (l: Lang) => void; t: (key: TKey) => string };
 
@@ -198,7 +265,9 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [lang]);
 
-  const t = (key: TKey) => dictionaries[lang][key] ?? en[key];
+  // Text saved by admins wins over the built-in dictionaries.
+  const overrides = useSavedContent().data?.texts;
+  const t = (key: TKey) => overrides?.[lang]?.[key]?.trim() || dictionaries[lang][key] || en[key];
 
   return <LanguageContext.Provider value={{ lang, setLang, t }}>{children}</LanguageContext.Provider>;
 };

@@ -1,4 +1,4 @@
-import { SCHOOL } from "@/data/site";
+import { useSchool } from "@/hooks/useSiteContent";
 import { useLanguage } from "@/lib/i18n";
 
 const WhatsAppIcon = () => (
@@ -8,8 +8,9 @@ const WhatsAppIcon = () => (
 );
 
 const WhatsAppButton = () => {
+  const school = useSchool();
   const { t } = useLanguage();
-  const href = `https://wa.me/${SCHOOL.whatsapp}?text=${encodeURIComponent(t("whatsapp.message"))}`;
+  const href = `https://wa.me/${school.whatsapp}?text=${encodeURIComponent(t("whatsapp.message"))}`;
   return (
     <a
       href={href}

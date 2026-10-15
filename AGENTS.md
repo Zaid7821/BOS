@@ -69,7 +69,13 @@ npm run check       # typecheck + lint + server syntax check + production build
 - **Mobile first.** Every change must work at 360px width: no sideways scrolling, tap targets at least ~44px, text at least 16px in form inputs (prevents iOS zoom). Check `sm:` / `md:` breakpoints.
 - The phone layout has a fixed bottom bar (Call / WhatsApp / Apply) in `Layout.tsx`; don't cover it or remove the bottom padding on the page wrapper.
 - **Images:** use Cloudinary URLs through `cld(url, width)` and `cldSrcSet(url)`; add `loading="lazy"` below the fold. Don't add large images to `public/`.
-- **Content that admins edit** (logo, toppers, events, fees, bus routes, testimonials, staff, stats, videos, gallery) must be read through `useSiteContent()` / `useGallery()`, never directly from `site.ts`, otherwise admin edits won't show.
+- **Content that admins edit** must be read through hooks, never directly from `site.ts`, otherwise admin edits won't show:
+  - `useSchool()`: phone, WhatsApp, email, address, office hours, social links, chairman, hero/vision images, prospectus, About history (use it instead of `SCHOOL` for these fields)
+  - `useSiteContent()`: logo, toppers, events, fees, bus routes, testimonials, staff, stats, videos, admission steps/documents/age criteria, enquiry-form classes, stages, streams, academic calendar
+  - `useGallery()`: gallery photos
+  - `t("key")`: keys listed in `EDITABLE_TEXTS` (`src/lib/i18n.tsx`) can be overridden by admins per language
+- **Goal: school staff change content in the admin panel, not in code.** When adding new content that staff may want to change, make it admin-editable.
+- The footer has a "Staff login" link to `/admin` (blocked for search engines in `public/robots.txt`).
 - `site.ts` items with `isSample: true` are placeholders: shown in dev with a yellow "Sample" tag, hidden in production. Don't remove that mechanism or publish fake data as real.
 - **Bilingual text:** user-facing strings that already use `t("...")` need both an English (`en`) and Hindi (`hi`) entry in `src/lib/i18n.tsx`.
 - All API calls go through `api()` in `src/lib/api.ts`. The base URL comes from `VITE_API_BASE_URL` (empty in dev because of the proxy).

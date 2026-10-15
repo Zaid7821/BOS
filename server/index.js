@@ -23,7 +23,10 @@ const CLOUDINARY = {
 const cloudinaryReady = Boolean(CLOUDINARY.cloudName && CLOUDINARY.apiKey && CLOUDINARY.apiSecret);
 
 // Website sections the admin can edit. Each is stored as one JSON value in site_content.
-const CONTENT_KEYS = ["toppers", "events", "fees", "transport", "testimonials", "staff", "stats", "videos", "branding"];
+const CONTENT_KEYS = [
+  "toppers", "events", "fees", "transport", "testimonials", "staff", "stats", "videos", "branding",
+  "school", "texts", "admissionSteps", "admissionDocuments", "ageCriteria", "classOptions", "sessionCalendar", "streams", "stages",
+];
 const ENQUIRY_STATUSES = ["new", "contacted", "admitted", "closed"];
 
 // Photos the gallery started with, copied into the database the first time it is created.
@@ -405,6 +408,12 @@ app.put("/api/admin/content/:key", requireAdmin, async (req, res) => {
   }
   if (key === "branding" && !isImageUrl(clean(value.logo, 500))) {
     return res.status(400).json({ success: false, message: "Logo must be an image link starting with https://" });
+  }
+  if (key === "school") {
+    // Links that end up in href/src attributes must be real web links (blocks javascript: and similar).
+    const links = ["facebook", "youtube", "instagram", "chairmanPhoto", "heroImage", "visionImage", "prospectusUrl"];
+    const bad = links.find((k) => value[k] && !/^(https:\/\/\S+|\/[\w./-]*)$/.test(String(value[k]).trim()));
+    if (bad) return res.status(400).json({ success: false, message: `“${bad}” must be a link starting with https://` });
   }
   await pool.query(
     `INSERT INTO site_content (key, value, updated_at) VALUES ($1, $2, NOW())

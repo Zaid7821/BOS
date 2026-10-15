@@ -4,18 +4,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bus, Phone } from "lucide-react";
 import SampleTag from "@/components/SampleTag";
-import { SCHOOL } from "@/data/site";
-import { useSiteContent } from "@/hooks/useSiteContent";
+import { useSchool, useSiteContent } from "@/hooks/useSiteContent";
 import { useLanguage } from "@/lib/i18n";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 const AskOffice = ({ topic }: { topic: string }) => {
+  const school = useSchool();
   const { t } = useLanguage();
   return (
     <div className="rounded-lg border border-dashed border-primary/30 p-6 md:p-8 text-center">
       <p className="text-lg mb-4">For the current {topic}, please contact the school office.</p>
       <Button variant="hero" asChild>
-        <a href={`tel:${SCHOOL.phone}`}>
+        <a href={`tel:${school.phone}`}>
           <Phone className="h-4 w-4 mr-2" aria-hidden="true" />
           {t("cta.call")}
         </a>
