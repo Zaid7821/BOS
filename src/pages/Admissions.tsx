@@ -4,11 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Download, Phone } from "lucide-react";
 import EnquiryForm from "@/components/EnquiryForm";
-import { admissionDocuments, admissionSteps, ageCriteria, SCHOOL } from "@/data/site";
+import { useSchool, useSiteContent } from "@/hooks/useSiteContent";
 import { useLanguage } from "@/lib/i18n";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 const Admissions = () => {
+  const school = useSchool();
+  const { admissionSteps, admissionDocuments, ageCriteria } = useSiteContent();
   const { t } = useLanguage();
   usePageTitle("Admissions");
 
@@ -20,14 +22,14 @@ const Admissions = () => {
             <Badge variant="secondary" className="mb-6">Nursery to Class XI</Badge>
             <h1 className="text-3xl md:text-5xl font-bold text-primary mb-4 md:mb-6">Admissions</h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-              Join {SCHOOL.name}, a CBSE-affiliated school in Fatehpur. Here is everything you need to apply.
+              Join {school.name}, a CBSE-affiliated school in Fatehpur. Here is everything you need to apply.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button variant="hero" size="lg" asChild>
                 <a href="#enquiry">{t("cta.enquire")}</a>
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <a href="/admission-info.pdf" download>
+                <a href={school.prospectusUrl} target="_blank" rel="noopener noreferrer">
                   <Download className="h-5 w-5 mr-2" aria-hidden="true" />
                   {t("cta.prospectus")}
                 </a>
@@ -56,11 +58,11 @@ const Admissions = () => {
               </ol>
               <div className="mt-8 rounded-lg bg-secondary-lighter p-5">
                 <p className="font-semibold mb-2">Prefer to talk?</p>
-                <a href={`tel:${SCHOOL.phone}`} className="inline-flex items-center gap-2 text-lg font-bold text-primary hover:underline">
+                <a href={`tel:${school.phone}`} className="inline-flex items-center gap-2 text-lg font-bold text-primary hover:underline">
                   <Phone className="h-5 w-5" aria-hidden="true" />
-                  {SCHOOL.phoneDisplay}
+                  {school.phoneDisplay}
                 </a>
-                <p className="text-sm text-muted-foreground mt-1">{SCHOOL.officeHours[0]}</p>
+                <p className="text-sm text-muted-foreground mt-1">{school.officeHours[0]}</p>
               </div>
             </div>
             <EnquiryForm />

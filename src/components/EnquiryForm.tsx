@@ -6,13 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { classOptions, SCHOOL } from "@/data/site";
+import { useSchool, useSiteContent } from "@/hooks/useSiteContent";
 import { api } from "@/lib/api";
 import { useLanguage } from "@/lib/i18n";
 
 const empty = { studentName: "", classApplying: "", parentName: "", phone: "", email: "", previousSchool: "", message: "" };
 
 const EnquiryForm = () => {
+  const school = useSchool();
+  const { classOptions } = useSiteContent();
   const { t } = useLanguage();
   const [form, setForm] = useState(empty);
   const [sending, setSending] = useState(false);
@@ -33,7 +35,7 @@ const EnquiryForm = () => {
     if (res.success) setForm(empty);
     setStatus({
       success: res.success,
-      message: res.message ?? (res.success ? "Enquiry received." : `Could not send. Please call ${SCHOOL.phoneDisplay}.`),
+      message: res.message ?? (res.success ? "Enquiry received." : `Could not send. Please call ${school.phoneDisplay}.`),
     });
     setSending(false);
   };

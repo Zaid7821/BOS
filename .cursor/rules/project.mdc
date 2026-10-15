@@ -1,0 +1,13 @@
+---
+description: Project rules for the BOS school website
+alwaysApply: true
+---
+
+Read and follow AGENTS.md at the repo root before making changes. Key points:
+
+- Never commit or print secrets (.env, server/.env, API keys, database URLs).
+- Every /api/admin/* route uses requireAdmin; SQL is always parameterised.
+- Mobile first: must work at 360px width.
+- Admin-editable content is read through useSiteContent() / useGallery(), not directly from src/data/site.ts.
+- User-facing t("...") strings need English and Hindi entries in src/lib/i18n.tsx.
+- Run `npm run check` before finishing.

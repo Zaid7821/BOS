@@ -6,12 +6,13 @@ import StatsCounter from "@/components/StatsCounter";
 import Toppers from "@/components/Toppers";
 import Testimonials from "@/components/Testimonials";
 import { BookOpen, Users, GraduationCap, Phone } from "lucide-react";
-import { SCHOOL, galleryImages } from "@/data/site";
+import { DEFAULT_HERO, useSchool } from "@/hooks/useSiteContent";
 import { cld, cldSrcSet } from "@/lib/cloudinary";
 import { useLanguage } from "@/lib/i18n";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 const Home = () => {
+  const school = useSchool();
   const navigate = useNavigate();
   const { lang, t } = useLanguage();
   usePageTitle();
@@ -28,8 +29,8 @@ const Home = () => {
         {/* Hero */}
         <section className="relative min-h-[70svh] md:min-h-[78vh] flex items-center justify-center overflow-hidden">
           <img
-            src="/images/bos-hero.jpg"
-            srcSet="/images/bos-hero-800.jpg 800w, /images/bos-hero.jpg 1280w"
+            src={school.heroImage === DEFAULT_HERO ? DEFAULT_HERO : cld(school.heroImage, 1280)}
+            srcSet={school.heroImage === DEFAULT_HERO ? "/images/bos-hero-800.jpg 800w, /images/bos-hero.jpg 1280w" : cldSrcSet(school.heroImage, [800, 1280, 1920])}
             sizes="100vw"
             alt=""
             className="absolute inset-0 h-full w-full object-cover"
@@ -44,11 +45,11 @@ const Home = () => {
 
               <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 leading-tight text-white drop-shadow-xl">
                 <span className="block text-xl md:text-3xl font-medium text-white/90 mb-2">{t("home.welcome")}</span>
-                <span className="block text-secondary">{lang === "hi" ? SCHOOL.nameHi : SCHOOL.name}</span>
+                <span className="block text-secondary">{lang === "hi" ? school.nameHi : school.name}</span>
               </h1>
 
               <p className="text-base md:text-lg mb-3 font-semibold text-white/95">
-                {t("header.affiliated")} · {t("header.affiliationNo")} {SCHOOL.affiliationNo}
+                {t("header.affiliated")} · {t("header.affiliationNo")} {school.affiliationNo}
               </p>
 
               <p className="text-base md:text-xl mb-8 text-gray-100 max-w-3xl mx-auto drop-shadow">{t("home.tagline")}</p>
@@ -58,7 +59,7 @@ const Home = () => {
                   {t("cta.enquire")}
                 </Button>
                 <Button size="lg" variant="outline" className="bg-white/10 text-white border-white/60 hover:bg-white hover:text-primary text-base px-8" asChild>
-                  <a href={`tel:${SCHOOL.phone}`}>
+                  <a href={`tel:${school.phone}`}>
                     <Phone className="h-5 w-5 mr-2" aria-hidden="true" />
                     {t("cta.call")}
                   </a>
@@ -85,10 +86,10 @@ const Home = () => {
               </div>
             </div>
             <img
-              src={cld(galleryImages[1].src, 900)}
-              srcSet={cldSrcSet(galleryImages[1].src)}
+              src={cld(school.visionImage, 900)}
+              srcSet={cldSrcSet(school.visionImage)}
               sizes="(min-width: 1024px) 50vw, 100vw"
-              alt={galleryImages[1].alt}
+              alt=""
               className="w-full aspect-[4/3] object-cover rounded-xl shadow-school-md"
               loading="lazy"
             />
@@ -103,16 +104,16 @@ const Home = () => {
             <h2 className="text-2xl md:text-4xl font-bold text-primary mb-8 font-serif text-center">{t("home.chairmanTitle")}</h2>
             <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 lg:gap-10 items-start">
               <div className="w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] lg:w-[280px] lg:h-[280px] mx-auto lg:mx-0 rounded-full overflow-hidden shadow-lg">
-                <img src={cld(SCHOOL.chairman.photo, 600)} alt={SCHOOL.chairman.name} className="w-full h-full object-cover" loading="lazy" />
+                <img src={cld(school.chairman.photo, 600)} alt={school.chairman.name} className="w-full h-full object-cover" loading="lazy" />
               </div>
               <div className="space-y-5">
                 <p className="text-muted-foreground leading-relaxed">{t("home.chairmanP1")}</p>
                 <p className="text-muted-foreground leading-relaxed">{t("home.chairmanP2")}</p>
                 <p className="text-muted-foreground leading-relaxed">{t("home.chairmanP3")}</p>
                 <div className="pt-2 text-center sm:text-right">
-                  <p className="text-lg font-semibold text-primary">{SCHOOL.chairman.name}</p>
+                  <p className="text-lg font-semibold text-primary">{school.chairman.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {t("home.chairmanRole")}, {lang === "hi" ? SCHOOL.nameHi : SCHOOL.name}
+                    {t("home.chairmanRole")}, {lang === "hi" ? school.nameHi : school.name}
                   </p>
                 </div>
               </div>
@@ -151,7 +152,7 @@ const Home = () => {
                 {t("cta.enquire")}
               </Button>
               <Button size="lg" variant="outline" className="bg-transparent text-primary-foreground border-primary-foreground/60 hover:bg-primary-foreground hover:text-primary text-base px-8" asChild>
-                <a href="/admission-info.pdf" download>
+                <a href={school.prospectusUrl} target="_blank" rel="noopener noreferrer">
                   {t("cta.prospectus")}
                 </a>
               </Button>

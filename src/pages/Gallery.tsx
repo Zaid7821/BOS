@@ -7,14 +7,14 @@ import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
 import "yet-another-react-lightbox/plugins/thumbnails.css";
 import { Youtube } from "lucide-react";
-import { SCHOOL } from "@/data/site";
-import { useGallery, useSiteContent } from "@/hooks/useSiteContent";
+import { useGallery, useSchool, useSiteContent } from "@/hooks/useSiteContent";
 import { cld, cldSrcSet } from "@/lib/cloudinary";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 const label = (c: string) => c.charAt(0).toUpperCase() + c.slice(1);
 
 const Gallery = () => {
+  const school = useSchool();
   usePageTitle("Gallery");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -106,7 +106,7 @@ const Gallery = () => {
           )}
           <div className="text-center">
             <Button variant="outline" size="lg" className="h-auto whitespace-normal py-3" asChild>
-              <a href={SCHOOL.social.youtube} target="_blank" rel="noopener noreferrer">
+              <a href={school.social.youtube} target="_blank" rel="noopener noreferrer">
                 <Youtube className="h-5 w-5 mr-2 text-red-600" aria-hidden="true" />
                 Watch more on our YouTube channel
               </a>

@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Search, Trash2 } from "lucide-react";
 import GalleryManager from "@/components/admin/GalleryManager";
 import ContentEditor from "@/components/admin/ContentEditor";
+import { useSiteContent } from "@/hooks/useSiteContent";
+import { cld } from "@/lib/cloudinary";
 import { api } from "@/lib/api";
 import { SCHOOL } from "@/data/site";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -98,6 +100,7 @@ const Login = ({ onLogin }: { onLogin: (token: string) => void }) => {
 
 const Admin = () => {
   usePageTitle("Admin");
+  const { logo } = useSiteContent();
   const [token, setToken] = useState<string | null>(() => {
     try {
       return sessionStorage.getItem(TOKEN_KEY);
@@ -181,9 +184,12 @@ const Admin = () => {
     <div className="min-h-screen bg-muted">
       <header className="bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+          <img src={cld(logo, 80)} alt="" className="h-10 w-10 shrink-0 rounded bg-white object-contain p-0.5" />
           <div className="min-w-0">
             <p className="font-bold">School admin</p>
             <p className="truncate text-sm text-primary-foreground/80">{SCHOOL.name}</p>
+          </div>
           </div>
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" asChild><Link to="/">View website</Link></Button>

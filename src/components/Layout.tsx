@@ -1,9 +1,10 @@
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Phone, Mail, MapPin, Facebook, Youtube, Instagram, Languages, MessageCircle, Send } from "lucide-react";
+import { Menu, X, Phone, Mail, MapPin, Facebook, Youtube, Instagram, Languages, MessageCircle, Send, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
-import schoolLogo from "@/assets/school-logo.jpg";
-import { SCHOOL, stages } from "@/data/site";
+import { cld } from "@/lib/cloudinary";
+import { useSchool, useSiteContent } from "@/hooks/useSiteContent";
+
 import { useLanguage, type TKey } from "@/lib/i18n";
 import NoticeTicker from "./NoticeTicker";
 import WhatsAppButton from "./WhatsAppButton";
@@ -51,15 +52,27 @@ const LanguageToggle = ({ className = "" }: { className?: string }) => {
 };
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
+  const school = useSchool();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { lang, t } = useLanguage();
   useScrollOnNavigate();
   const { pathname } = useLocation();
+  const { logo, hasCustomLogo, stages } = useSiteContent();
 
-  const schoolName = lang === "hi" ? SCHOOL.nameHi : SCHOOL.name;
+  // Use the admin-uploaded logo as the browser tab icon too.
+  useEffect(() => {
+    if (!hasCustomLogo) return;
+    const icon = document.querySelector<HTMLLinkElement>("link[rel='icon']");
+    if (icon) {
+      icon.href = cld(logo, 64);
+      icon.removeAttribute("type");
+    }
+  }, [logo, hasCustomLogo]);
+
+  const schoolName = lang === "hi" ? school.nameHi : school.name;
   const goApply = () => navigate("/admissions#enquiry");
-  const whatsappHref = `https://wa.me/${SCHOOL.whatsapp}?text=${encodeURIComponent(t("whatsapp.message"))}`;
+  const whatsappHref = `https://wa.me/${school.whatsapp}?text=${encodeURIComponent(t("whatsapp.message"))}`;
 
   // Close the mobile menu whenever the page changes (including back/forward).
   useEffect(() => setIsMobileMenuOpen(false), [pathname]);
@@ -79,21 +92,21 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <div className="hidden md:block border-b border-border/50 text-sm text-muted-foreground">
           <div className="container mx-auto px-4 flex items-center justify-between py-2">
             <div className="flex items-center gap-6">
-              <a href={`tel:${SCHOOL.phone}`} className="flex items-center gap-2 hover:text-primary">
+              <a href={`tel:${school.phone}`} className="flex items-center gap-2 hover:text-primary">
                 <Phone className="h-4 w-4 text-primary" aria-hidden="true" />
-                {SCHOOL.phoneDisplay}
+                {school.phoneDisplay}
               </a>
-              <a href={`mailto:${SCHOOL.email}`} className="flex items-center gap-2 hover:text-primary">
+              <a href={`mailto:${school.email}`} className="flex items-center gap-2 hover:text-primary">
                 <Mail className="h-4 w-4 text-primary" aria-hidden="true" />
-                {SCHOOL.email}
+                {school.email}
               </a>
               <span className="hidden lg:flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" aria-hidden="true" />
-                {SCHOOL.addressShort}
+                {school.addressShort}
               </span>
             </div>
             <span className="font-medium text-primary">
-              {t("header.affiliationNo")} {SCHOOL.affiliationNo}
+              {t("header.affiliationNo")} {school.affiliationNo}
             </span>
           </div>
         </div>
@@ -102,12 +115,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           {/* Main navigation */}
           <div className="flex items-center justify-between gap-4 py-3">
             <Link to="/" className="flex items-center gap-3 min-w-0">
-              <img src={schoolLogo} alt="" className="h-11 w-11 md:h-14 md:w-14 shrink-0 object-contain" />
+              <img src={cld(logo, 112)} alt="" className="h-11 w-11 md:h-14 md:w-14 shrink-0 object-contain" />
               <div className="min-w-0">
                 <p className="text-[15px] sm:text-base md:text-xl font-bold leading-tight text-primary">{schoolName}</p>
                 <p className="hidden md:block text-sm text-muted-foreground">{t("header.affiliated")}</p>
                 <p className="md:hidden text-xs text-muted-foreground whitespace-nowrap">
-                  CBSE Aff. No. {SCHOOL.affiliationNo}
+                  CBSE Aff. No. {school.affiliationNo}
                 </p>
               </div>
             </Link>
@@ -174,7 +187,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   {t("cta.apply")}
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                  <a href={`tel:${SCHOOL.phone}`}>
+                  <a href={`tel:${school.phone}`}>
                     <Phone className="h-4 w-4 mr-1.5" aria-hidden="true" />
                     {t("cta.call")}
                   </a>
@@ -197,7 +210,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-12 w-12 shrink-0 rounded bg-white flex items-center justify-center overflow-hidden">
-                  <img src={schoolLogo} alt="" className="h-10 w-10 object-contain" />
+                  <img src={cld(logo, 80)} alt="" className="h-10 w-10 object-contain" loading="lazy" />
                 </div>
                 <p className="text-lg font-semibold leading-tight">{schoolName}</p>
               </div>
@@ -205,20 +218,20 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <p className="text-sm font-semibold text-secondary mb-4">
                 {t("header.affiliated")}
                 <br />
-                {t("header.affiliationNo")} {SCHOOL.affiliationNo}
+                {t("header.affiliationNo")} {school.affiliationNo}
               </p>
               <div className="space-y-2 text-sm text-primary-foreground/80">
                 <p className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" />
-                  {SCHOOL.addressShort}
+                  {school.addressShort}
                 </p>
-                <a href={`tel:${SCHOOL.phone}`} className="flex items-center gap-2 hover:text-primary-foreground hover:underline">
+                <a href={`tel:${school.phone}`} className="flex items-center gap-2 hover:text-primary-foreground hover:underline">
                   <Phone className="h-4 w-4" aria-hidden="true" />
-                  {SCHOOL.phoneDisplay}
+                  {school.phoneDisplay}
                 </a>
-                <a href={`mailto:${SCHOOL.email}`} className="flex items-center gap-2 hover:text-primary-foreground hover:underline">
+                <a href={`mailto:${school.email}`} className="flex items-center gap-2 hover:text-primary-foreground hover:underline">
                   <Mail className="h-4 w-4" aria-hidden="true" />
-                  {SCHOOL.email}
+                  {school.email}
                 </a>
               </div>
             </div>
@@ -254,9 +267,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <h2 className="text-lg font-semibold mb-4">{t("footer.connect")}</h2>
               <div className="flex gap-3">
                 {[
-                  { href: SCHOOL.social.facebook, label: "Facebook", Icon: Facebook },
-                  { href: SCHOOL.social.youtube, label: "YouTube", Icon: Youtube },
-                  { href: SCHOOL.social.instagram, label: "Instagram", Icon: Instagram },
+                  { href: school.social.facebook, label: "Facebook", Icon: Facebook },
+                  { href: school.social.youtube, label: "YouTube", Icon: Youtube },
+                  { href: school.social.instagram, label: "Instagram", Icon: Instagram },
                 ].map(({ href, label, Icon }) => (
                   <a
                     key={label}
@@ -276,10 +289,18 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </div>
 
-          <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center text-sm text-primary-foreground/60">
+          <div className="border-t border-primary-foreground/20 mt-8 pt-8 flex flex-col items-center gap-3 text-center text-sm text-primary-foreground/60 sm:flex-row sm:justify-between sm:text-left">
             <p>
-              &copy; {new Date().getFullYear()} {SCHOOL.name}. {t("footer.rights")}
+              &copy; {new Date().getFullYear()} {school.name}. {t("footer.rights")}
             </p>
+            {/* For teachers and office staff: opens the admin panel */}
+            <Link
+              to="/admin"
+              className="inline-flex items-center gap-1.5 rounded px-2 py-2 text-primary-foreground/70 hover:text-primary-foreground hover:underline"
+            >
+              <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+              {t("footer.staffLogin")}
+            </Link>
           </div>
         </div>
       </footer>
@@ -288,7 +309,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Mobile action bar: most visitors are on phones, so keep call / WhatsApp / apply one tap away. */}
       <div className="md:hidden fixed inset-x-0 bottom-0 z-50 grid grid-cols-3 border-t border-border bg-background/95 backdrop-blur pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
-        <a href={`tel:${SCHOOL.phone}`} className="flex h-16 flex-col items-center justify-center gap-1 text-xs font-semibold text-primary active:bg-muted">
+        <a href={`tel:${school.phone}`} className="flex h-16 flex-col items-center justify-center gap-1 text-xs font-semibold text-primary active:bg-muted">
           <Phone className="h-5 w-5" aria-hidden="true" />
           {t("cta.call")}
         </a>

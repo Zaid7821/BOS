@@ -2,10 +2,12 @@ import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays } from "lucide-react";
-import { sessionCalendar, stages, streams, SCHOOL } from "@/data/site";
+import { useSchool, useSiteContent } from "@/hooks/useSiteContent";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 const Academics = () => {
+  const school = useSchool();
+  const { stages, streams, sessionCalendar } = useSiteContent();
   usePageTitle("Academics");
 
   return (
@@ -16,7 +18,7 @@ const Academics = () => {
             <Badge variant="secondary" className="mb-6">CBSE Curriculum</Badge>
             <h1 className="text-3xl md:text-5xl font-bold text-primary mb-4 md:mb-6">Academics</h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-              We follow the CBSE curriculum with NCERT textbooks from Nursery to Class XII. Affiliation No. {SCHOOL.affiliationNo}.
+              We follow the CBSE curriculum with NCERT textbooks from Nursery to Class XII. Affiliation No. {school.affiliationNo}.
             </p>
           </div>
         </section>
@@ -34,7 +36,7 @@ const Academics = () => {
                   </div>
                   <CardDescription className="text-base">{stage.description}</CardDescription>
                 </CardHeader>
-                {stage.subjects[0] !== "See streams below" && (
+                {stage.subjects.length > 0 && stage.subjects[0] !== "See streams below" && (
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
                       {stage.subjects.map((s) => (

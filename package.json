@@ -8,6 +8,9 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "check:server": "node --check server/index.js && node --check server/db.js",
+    "check": "npm run typecheck && npm run lint && npm run check:server && npm run build",
     "preview": "vite preview",
     "server": "node server/index.js"
   },
