@@ -19,7 +19,7 @@ const emptyForm = { name: "", email: "", phone: "", subject: "", message: "" };
 const Contact = () => {
   const school = useSchool();
   const { t } = useLanguage();
-  usePageTitle("Contact");
+  usePageTitle(t("nav.contact"));
 
   const mapQuery = encodeURIComponent(school.mapQuery);
   const whatsappHref = `https://wa.me/${school.whatsapp}?text=${encodeURIComponent(t("whatsapp.message"))}`;
@@ -34,7 +34,7 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.subject) {
-      setStatus({ success: false, message: "Please choose a subject." });
+      setStatus({ success: false, message: t("contact.chooseSubject") });
       return;
     }
     setIsSubmitting(true);
@@ -50,11 +50,9 @@ const Contact = () => {
       <div className="space-y-12 md:space-y-16">
         <section className="bg-gradient-subtle py-10 md:py-16">
           <div className="container mx-auto px-4 text-center">
-            <Badge variant="secondary" className="mb-6">Get In Touch</Badge>
-            <h1 className="text-3xl md:text-5xl font-bold text-primary mb-4 md:mb-6">Contact Us</h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-              Call, WhatsApp, or visit us for admissions, campus visits, or any other question.
-            </p>
+            <Badge variant="secondary" className="mb-6">{t("contact.badge")}</Badge>
+            <h1 className="text-3xl md:text-5xl font-bold text-primary mb-4 md:mb-6">{t("contact.title")}</h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">{t("contact.intro")}</p>
           </div>
         </section>
 
@@ -86,14 +84,14 @@ const Contact = () => {
               <div className="flex gap-4">
                 <MapPin className="h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
                 <div>
-                  <h2 className="font-semibold text-primary">Address</h2>
+                  <h2 className="font-semibold text-primary">{t("contact.address")}</h2>
                   <p className="text-muted-foreground">{school.addressLines.join(", ")}</p>
                 </div>
               </div>
               <div className="flex gap-4">
                 <Phone className="h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
                 <div>
-                  <h2 className="font-semibold text-primary">Phone & WhatsApp</h2>
+                  <h2 className="font-semibold text-primary">{t("contact.phone")}</h2>
                   <a href={`tel:${school.phone}`} className="text-muted-foreground hover:text-primary hover:underline">
                     {school.phoneDisplay}
                   </a>
@@ -102,7 +100,7 @@ const Contact = () => {
               <div className="flex gap-4">
                 <Mail className="h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
                 <div>
-                  <h2 className="font-semibold text-primary">Email</h2>
+                  <h2 className="font-semibold text-primary">{t("contact.email")}</h2>
                   <a href={`mailto:${school.email}`} className="text-muted-foreground hover:text-primary hover:underline">
                     {school.email}
                   </a>
@@ -111,7 +109,7 @@ const Contact = () => {
               <div className="flex gap-4">
                 <Clock className="h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
                 <div>
-                  <h2 className="font-semibold text-primary">Office hours</h2>
+                  <h2 className="font-semibold text-primary">{t("contact.hours")}</h2>
                   {school.officeHours.map((h) => (
                     <p key={h} className="text-muted-foreground">{h}</p>
                   ))}
@@ -136,51 +134,51 @@ const Contact = () => {
           <div className="max-w-2xl mx-auto">
             <Card className="shadow-school-lg border-primary/10">
               <CardHeader>
-                <CardTitle className="text-2xl text-primary">Send us a message</CardTitle>
+                <CardTitle className="text-2xl text-primary">{t("contact.formTitle")}</CardTitle>
                 <CardDescription>
-                  We reply within one working day. For admissions, the{" "}
-                  <Link to="/admissions#enquiry" className="font-semibold text-primary underline underline-offset-2">admission enquiry form</Link>{" "}
-                  is faster.
+                  {t("contact.formDesc")}{" "}
+                  <Link to="/admissions#enquiry" className="font-semibold text-primary underline underline-offset-2">{t("contact.formLink")}</Link>
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Full name *</Label>
+                    <Label htmlFor="name">{t("contact.name")} *</Label>
                     <Input id="name" value={form.name} onChange={handleChange} required maxLength={120} />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email *</Label>
+                      <Label htmlFor="email">{t("contact.email")} *</Label>
                       <Input id="email" type="email" value={form.email} onChange={handleChange} required maxLength={160} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone</Label>
+                      <Label htmlFor="phone">{t("contact.phoneLabel")}</Label>
                       <Input id="phone" type="tel" inputMode="numeric" pattern="[0-9+\-\s]{10,15}" value={form.phone} onChange={handleChange} />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="subject">Subject *</Label>
+                    <Label htmlFor="subject">{t("contact.subject")} *</Label>
                     <Select value={form.subject} onValueChange={(v) => setForm((p) => ({ ...p, subject: v }))}>
                       <SelectTrigger id="subject">
-                        <SelectValue placeholder="Choose a subject" />
+                        <SelectValue placeholder={t("contact.chooseSubject")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="admissions">Admissions</SelectItem>
-                        <SelectItem value="visit">Campus visit</SelectItem>
-                        <SelectItem value="fees">Fees & transport</SelectItem>
-                        <SelectItem value="academics">Academics</SelectItem>
-                        <SelectItem value="general">General question</SelectItem>
+                        {/* Values are saved with the message, so they stay in English; only the labels change. */}
+                        <SelectItem value="admissions">{t("contact.subjectAdmissions")}</SelectItem>
+                        <SelectItem value="visit">{t("contact.subjectVisit")}</SelectItem>
+                        <SelectItem value="fees">{t("contact.subjectFees")}</SelectItem>
+                        <SelectItem value="academics">{t("contact.subjectAcademics")}</SelectItem>
+                        <SelectItem value="general">{t("contact.subjectGeneral")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="message">Message *</Label>
+                    <Label htmlFor="message">{t("contact.message")} *</Label>
                     <Textarea id="message" rows={5} value={form.message} onChange={handleChange} required maxLength={3000} />
                   </div>
                   <Button type="submit" variant="hero" className="w-full text-base py-3" disabled={isSubmitting}>
                     <Send className="w-5 h-5 mr-2" aria-hidden="true" />
-                    {isSubmitting ? t("form.sending") : "Send message"}
+                    {isSubmitting ? t("form.sending") : t("contact.send")}
                   </Button>
                   {status.message && (
                     <p role="status" className={`text-sm ${status.success ? "text-green-700" : "text-red-600"}`}>
@@ -195,14 +193,14 @@ const Contact = () => {
 
         {/* Helpful links */}
         <section className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-primary mb-8 text-center">Quick answers</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-primary mb-8 text-center">{t("contact.quickTitle")}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { title: "Admission process", text: "Steps, documents, and age criteria.", to: "/admissions", cta: "See admissions" },
-              { title: "Fees & transport", text: "Fee structure and school bus routes.", to: "/fees", cta: "See fees" },
-              { title: "Academic programs", text: "CBSE curriculum and Class XI–XII streams.", to: "/academics", cta: "See academics" },
+              { title: t("contact.quick1Title"), text: t("contact.quick1Text"), to: "/admissions", cta: t("contact.quick1Cta") },
+              { title: t("contact.quick2Title"), text: t("contact.quick2Text"), to: "/fees", cta: t("contact.quick2Cta") },
+              { title: t("contact.quick3Title"), text: t("contact.quick3Text"), to: "/academics", cta: t("contact.quick3Cta") },
             ].map((item) => (
-              <Card key={item.title} className="text-center shadow-school-sm border-primary/10">
+              <Card key={item.to} className="text-center shadow-school-sm border-primary/10">
                 <CardHeader>
                   <CardTitle className="text-primary">{item.title}</CardTitle>
                 </CardHeader>

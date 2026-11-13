@@ -11,6 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Search, Trash2 } from "lucide-react";
 import GalleryManager from "@/components/admin/GalleryManager";
 import ContentEditor from "@/components/admin/ContentEditor";
+import StaffManager from "@/components/admin/StaffManager";
+import { ROLE_LABEL, type AdminUser } from "@/components/admin/staff";
+import ActivityLog from "@/components/admin/ActivityLog";
+import ChangePassword from "@/components/admin/ChangePassword";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { cld } from "@/lib/cloudinary";
 import { api } from "@/lib/api";
@@ -61,7 +65,11 @@ const downloadCsv = (rows: Enquiry[]) => {
   URL.revokeObjectURL(a.href);
 };
 
-const Login = ({ onLogin }: { onLogin: (token: string) => void }) => {
+// Content sections a teacher may edit (the server enforces the same list).
+const TEACHER_CONTENT_KEYS = ["events"];
+
+const Login = ({ onLogin }: { onLogin: (token: string, user: AdminUser) => void }) => {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -70,9 +78,9 @@ const Login = ({ onLogin }: { onLogin: (token: string) => void }) => {
     e.preventDefault();
     setBusy(true);
     setError("");
-    const res = await api("/api/admin/login", { method: "POST", body: JSON.stringify({ password }) });
+    const res = await api<AdminUser>("/api/admin/login", { method: "POST", body: JSON.stringify({ username, password }) });
     setBusy(false);
-    if (res.success && res.token) onLogin(res.token);
+    if (res.success && res.token && res.data) onLogin(res.token, res.data);
     else setError(res.message ?? "Login failed.");
   };
 
@@ -86,8 +94,21 @@ const Login = ({ onLogin }: { onLogin: (token: string) => void }) => {
         <CardContent>
           <form onSubmit={submit} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                autoFocus
+              />
+              <p className="text-xs text-muted-foreground">Leave empty if you use the school’s master password.</p>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoFocus />
+              <Input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
             <Button type="submit" className="w-full" disabled={busy}>{busy ? "Logging in…" : "Log in"}</Button>
             {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
@@ -108,6 +129,7 @@ const Admin = () => {
       return null;
     }
   });
+  const [user, setUser] = useState<AdminUser | null>(null);
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -124,22 +146,41 @@ const Admin = () => {
       /* ignore */
     }
     setToken(null);
+    setUser(null);
   }, []);
 
-  const load = useCallback(async () => {
+  // Who is logged in. Read fresh from the server, so a role change or switched-off login shows straight away.
+  const loadMe = useCallback(async () => {
     if (!token) return;
-    const [e, m, n] = await Promise.all([
-      api<Enquiry[]>("/api/admin/enquiries", {}, token),
-      api<Message[]>("/api/admin/messages", {}, token),
-      api<Notice[]>("/api/admin/notices", {}, token),
-    ]);
-    if (!e.success && (e as { status?: number }).status === 401) return logout();
-    if (!e.success || !m.success || !n.success) setError(e.message || m.message || n.message || "Could not load data.");
-    else setError("");
-    setEnquiries(e.data ?? []);
-    setMessages(m.data ?? []);
-    setNotices(n.data ?? []);
+    const res = await api<AdminUser>("/api/admin/me", {}, token);
+    if (res.success && res.data) setUser(res.data);
+    else if ((res as { status?: number }).status === 401) logout();
+    else setError(res.message ?? "Could not load your account.");
   }, [token, logout]);
+
+  useEffect(() => {
+    loadMe();
+  }, [loadMe]);
+
+  const isPrincipal = user?.role === "principal";
+  const ready = Boolean(user && !user.mustChangePassword);
+
+  const load = useCallback(async () => {
+    if (!token || !ready) return;
+    // Teachers only get notices; enquiries and messages hold parents' phone numbers.
+    const [n, e, m] = await Promise.all([
+      api<Notice[]>("/api/admin/notices", {}, token),
+      isPrincipal ? api<Enquiry[]>("/api/admin/enquiries", {}, token) : null,
+      isPrincipal ? api<Message[]>("/api/admin/messages", {}, token) : null,
+    ]);
+    const results = [n, e, m].filter((r) => r !== null);
+    if (results.some((r) => (r as { status?: number }).status === 401)) return logout();
+    const failed = results.find((r) => !r.success);
+    setError(failed ? failed.message || "Could not load data." : "");
+    setNotices(n.data ?? []);
+    setEnquiries(e?.data ?? []);
+    setMessages(m?.data ?? []);
+  }, [token, ready, isPrincipal, logout]);
 
   useEffect(() => {
     load();
@@ -148,15 +189,51 @@ const Admin = () => {
   if (!token) {
     return (
       <Login
-        onLogin={(tkn) => {
+        onLogin={(tkn, u) => {
           try {
             sessionStorage.setItem(TOKEN_KEY, tkn);
           } catch {
             /* ignore */
           }
+          setUser(u);
           setToken(tkn);
         }}
       />
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted p-4">
+        {error ? (
+          <div className="text-center">
+            <p role="alert" className="text-red-700">{error}</p>
+            <Button className="mt-3" variant="outline" onClick={logout}>Back to login</Button>
+          </div>
+        ) : (
+          <p className="text-muted-foreground">Loading…</p>
+        )}
+      </div>
+    );
+  }
+
+  // First login with a password the principal made: the person must choose their own before anything else.
+  if (user.mustChangePassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted p-4">
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle className="text-primary">Welcome, {user.name}</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Please choose your own password. Type the password you were sent as the current password, and don’t share your new one.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <ChangePassword token={token} onDone={loadMe} />
+            <Button variant="ghost" size="sm" className="mt-4" onClick={logout}>Log out</Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -192,7 +269,7 @@ const Admin = () => {
           )}
           <div className="min-w-0">
             <p className="font-bold">School admin</p>
-            <p className="truncate text-sm text-primary-foreground/80">{SCHOOL.name}</p>
+            <p className="truncate text-sm text-primary-foreground/80">{user.name} · {ROLE_LABEL[user.role]}</p>
           </div>
           </div>
           <div className="flex gap-2">
@@ -209,15 +286,21 @@ const Admin = () => {
             <button type="button" className="font-semibold underline" onClick={() => setError("")}>Dismiss</button>
           </div>
         )}
-        <Tabs defaultValue="enquiries">
+        <Tabs defaultValue={isPrincipal ? "enquiries" : "notices"}>
           <TabsList className="mb-6 flex h-auto w-full justify-start overflow-x-auto sm:w-auto sm:flex-wrap">
-            <TabsTrigger value="enquiries">Enquiries {newCount > 0 && <Badge className="ml-2">{newCount} new</Badge>}</TabsTrigger>
+            {isPrincipal && (
+              <TabsTrigger value="enquiries">Enquiries {newCount > 0 && <Badge className="ml-2">{newCount} new</Badge>}</TabsTrigger>
+            )}
             <TabsTrigger value="notices">Notices ({notices.length})</TabsTrigger>
-            <TabsTrigger value="messages">Messages ({messages.length})</TabsTrigger>
+            {isPrincipal && <TabsTrigger value="messages">Messages ({messages.length})</TabsTrigger>}
             <TabsTrigger value="gallery">Gallery</TabsTrigger>
-            <TabsTrigger value="content">Website content</TabsTrigger>
+            <TabsTrigger value="content">{isPrincipal ? "Website content" : "Events"}</TabsTrigger>
+            {isPrincipal && <TabsTrigger value="staff">Staff logins</TabsTrigger>}
+            {isPrincipal && <TabsTrigger value="activity">Activity</TabsTrigger>}
+            <TabsTrigger value="account">My password</TabsTrigger>
           </TabsList>
 
+          {isPrincipal && (
           <TabsContent value="enquiries">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="relative flex-1">
@@ -314,6 +397,7 @@ const Admin = () => {
               </div>
             )}
           </TabsContent>
+          )}
 
           <TabsContent value="notices">
             <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-6 items-start">
@@ -402,6 +486,7 @@ const Admin = () => {
             </div>
           </TabsContent>
 
+          {isPrincipal && (
           <TabsContent value="messages">
             {messages.length === 0 ? (
               <p className="text-muted-foreground">No messages yet. They appear here when visitors use the contact form.</p>
@@ -431,13 +516,42 @@ const Admin = () => {
               </div>
             )}
           </TabsContent>
+          )}
 
           <TabsContent value="gallery">
             <GalleryManager token={token} onError={setError} />
           </TabsContent>
 
           <TabsContent value="content">
-            <ContentEditor token={token} onError={setError} />
+            <ContentEditor token={token} onError={setError} allowedKeys={isPrincipal ? undefined : TEACHER_CONTENT_KEYS} />
+          </TabsContent>
+
+          {isPrincipal && (
+            <TabsContent value="staff">
+              <StaffManager token={token} currentUserId={user.id} onError={setError} />
+            </TabsContent>
+          )}
+
+          {isPrincipal && (
+            <TabsContent value="activity">
+              <ActivityLog token={token} onError={setError} />
+            </TabsContent>
+          )}
+
+          <TabsContent value="account">
+            <Card className="max-w-md">
+              <CardHeader><CardTitle className="text-primary">Change my password</CardTitle></CardHeader>
+              <CardContent>
+                {user.id === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    You are logged in with the master password, which is changed in the hosting dashboard (ADMIN_PASSWORD). Better: add a
+                    login for yourself in “Staff logins” and use that from now on.
+                  </p>
+                ) : (
+                  <ChangePassword token={token} />
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </main>

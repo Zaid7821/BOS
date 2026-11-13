@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { api } from "@/lib/api";
 import { uploadImage } from "@/lib/upload";
 import { DEFAULT_LOGO, useSavedContent, useSchool, type SchoolDetails, type SiteContent } from "@/hooks/useSiteContent";
-import { DEFAULT_TEXTS, EDITABLE_TEXTS } from "@/lib/i18n";
+import { DEFAULT_TEXTS, EDITABLE_PAGES, EDITABLE_TEXTS } from "@/lib/i18n";
 import { cld } from "@/lib/cloudinary";
 import {
   admissionDocuments,
@@ -530,6 +530,15 @@ type SchoolField = { key: keyof SchoolDetails; label: string; hint?: string; typ
 
 const SCHOOL_FIELDS: { group: string; fields: SchoolField[] }[] = [
   {
+    group: "School name & CBSE affiliation",
+    fields: [
+      { key: "name", label: "School name (English)", hint: "Shown in the header, footer, page titles and text" },
+      { key: "nameHi", label: "School name (Hindi)", hint: "Shown when visitors switch to Hindi" },
+      { key: "affiliationNo", label: "CBSE affiliation number" },
+      { key: "founded", label: "Year founded", hint: "4 digits, e.g. 2006. Used for “Years of education” and the About page" },
+    ],
+  },
+  {
     group: "Contact",
     fields: [
       { key: "phoneDisplay", label: "Phone number", hint: "As parents should see it, e.g. +91 95653 13000" },
@@ -567,7 +576,7 @@ const SCHOOL_FIELDS: { group: string; fields: SchoolField[] }[] = [
   {
     group: "About page",
     fields: [
-      { key: "aboutHistory", label: "“Our history” text", type: "paragraphs", hint: "Leave an empty line between paragraphs" },
+      { key: "aboutHistory", label: "“Our history” text", type: "paragraphs", hint: "Leave an empty line between paragraphs. Leave empty to show the built-in history (English and Hindi)." },
     ],
   },
 ];
@@ -577,6 +586,10 @@ const SchoolEditor = ({ saved, token, onError }: { saved?: SchoolDetails; token:
   const current = useSchool();
   // Start from what the site shows now, so admins edit rather than retype.
   const fromSite = (): Record<string, string> => ({
+    name: current.name,
+    nameHi: current.nameHi,
+    affiliationNo: current.affiliationNo,
+    founded: String(current.founded),
     phoneDisplay: current.phoneDisplay,
     whatsapp: current.whatsapp,
     email: current.email,
@@ -618,6 +631,7 @@ const SchoolEditor = ({ saved, token, onError }: { saved?: SchoolDetails; token:
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (values.founded?.trim() && !/^\d{4}$/.test(values.founded.trim())) return onError("Year founded must be 4 digits, e.g. 2006.");
     const lines = (v: string) => v.split("\n").map((l) => l.trim()).filter(Boolean);
     const value: SchoolDetails = {
       ...(values as Record<string, string>),
@@ -681,6 +695,7 @@ const TextsEditor = ({ saved, token, onError }: { saved?: SiteContent["texts"]; 
   });
   const [values, setValues] = useState(fromSite);
   const [status, setStatus] = useState("");
+  const [page, setPage] = useState(EDITABLE_PAGES[0]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setValues(fromSite()), [saved]);
 
@@ -708,8 +723,16 @@ const TextsEditor = ({ saved, token, onError }: { saved?: SiteContent["texts"]; 
     <div className="space-y-8">
       <p className="text-sm text-muted-foreground">
         Each text has an English and a Hindi version. Visitors see the one matching the language button at the top of the site.
+        Words in {"{braces}"} such as {"{year}"} or {"{name}"} are filled in from School details; keep them as they are.
       </p>
-      {EDITABLE_TEXTS.map((g) => (
+      <div className="space-y-1.5">
+        <Label htmlFor="text-page">Which page?</Label>
+        <select id="text-page" value={page} onChange={(e) => setPage(e.target.value)} className="h-12 w-full rounded-md border bg-background px-3 text-base sm:w-80">
+          {EDITABLE_PAGES.map((p) => <option key={p} value={p}>{p}</option>)}
+        </select>
+        <p className="text-xs text-muted-foreground">“Save text” saves changes on every page, so you can edit several pages before saving.</p>
+      </div>
+      {EDITABLE_TEXTS.filter((g) => g.page === page).map((g) => (
         <section key={g.group} className="space-y-4">
           <h3 className="text-base font-semibold text-primary">{g.group}</h3>
           {g.items.map((item) => {
@@ -750,8 +773,8 @@ const TextsEditor = ({ saved, token, onError }: { saved?: SiteContent["texts"]; 
 
 // Editors that are not simple lists, shown at the top of the menu.
 const SPECIAL = [
-  { key: "school", title: "School details", hint: "Phone, WhatsApp, email, address, office hours, social links, chairman, pictures and prospectus." },
-  { key: "texts", title: "Page text (English & Hindi)", hint: "Headings and paragraphs on the home page, footer and WhatsApp message." },
+  { key: "school", title: "School details", hint: "School name, affiliation number, phone, WhatsApp, email, address, office hours, social links, chairman, pictures, prospectus and history." },
+  { key: "texts", title: "Page text (English & Hindi)", hint: "Every heading, paragraph, menu label and button on the website, page by page." },
   { key: "logo", title: "School logo", hint: "" },
   { key: "stats", title: "Home page numbers", hint: "" },
 ];
@@ -764,9 +787,19 @@ const MENU = [
   })),
 ];
 
-const ContentEditor = ({ token, onError }: { token: string; onError: (message: string) => void }) => {
+type ContentEditorProps = {
+  token: string;
+  onError: (message: string) => void;
+  /** Sections this person may edit (teachers); leave out to show every section. The server checks this too. */
+  allowedKeys?: string[];
+};
+
+const ContentEditor = ({ token, onError, allowedKeys }: ContentEditorProps) => {
   const { data: saved = {}, isLoading } = useSavedContent();
-  const [active, setActive] = useState<string>("school");
+  const menu = allowedKeys
+    ? MENU.map((g) => ({ ...g, items: g.items.filter((i) => allowedKeys.includes(i.key)) })).filter((g) => g.items.length)
+    : MENU;
+  const [active, setActive] = useState<string>(() => menu[0]?.items[0]?.key ?? "school");
   const section = SECTIONS.find((s) => s.key === active);
   const special = SPECIAL.find((s) => s.key === active);
 
@@ -783,7 +816,7 @@ const ContentEditor = ({ token, onError }: { token: string; onError: (message: s
           onChange={(e) => setActive(e.target.value)}
           className="h-12 w-full rounded-md border bg-background px-3 text-base"
         >
-          {MENU.map((g) => (
+          {menu.map((g) => (
             <optgroup key={g.group} label={g.group}>
               {g.items.map((i) => <option key={i.key} value={i.key}>{i.title}</option>)}
             </optgroup>
@@ -791,7 +824,7 @@ const ContentEditor = ({ token, onError }: { token: string; onError: (message: s
         </select>
       </div>
       <nav aria-label="Website sections" className="hidden lg:block space-y-4">
-        {MENU.map((g) => (
+        {menu.map((g) => (
           <div key={g.group}>
             <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{g.group}</p>
             <div className="flex flex-col gap-1">
