@@ -18,6 +18,17 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://my-project-tau-sooty.vercel.app/images/bos-hero.jpg" />
     <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
+    <script>
+      // Show the last admin-uploaded logo as the tab icon right away (saved by useSiteContent.ts).
+      try {
+        var logo = ((JSON.parse(localStorage.getItem("bos-site-content") || "{}") || {}).branding || {}).logo;
+        if (logo) {
+          var icon = document.querySelector("link[rel='icon']");
+          icon.removeAttribute("type");
+          icon.href = logo.indexOf("res.cloudinary.com") > -1 ? logo.replace("/upload/", "/upload/f_auto,q_auto,w_64,c_limit/") : logo;
+        }
+      } catch (e) {}
+    </script>
   </head>
 
   <body>

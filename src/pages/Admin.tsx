@@ -185,7 +185,11 @@ const Admin = () => {
       <header className="bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
-          <img src={cld(logo, 80)} alt="" className="h-10 w-10 shrink-0 rounded bg-white object-contain p-0.5" />
+          {logo ? (
+            <img src={cld(logo, 80)} alt="" className="h-10 w-10 shrink-0 rounded bg-white object-contain p-0.5" />
+          ) : (
+            <span aria-hidden className="h-10 w-10 shrink-0 rounded bg-white" />
+          )}
           <div className="min-w-0">
             <p className="font-bold">School admin</p>
             <p className="truncate text-sm text-primary-foreground/80">{SCHOOL.name}</p>
