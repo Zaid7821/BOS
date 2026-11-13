@@ -115,7 +115,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           {/* Main navigation */}
           <div className="flex items-center justify-between gap-4 py-3">
             <Link to="/" className="flex items-center gap-3 min-w-0">
-              <img src={cld(logo, 112)} alt="" className="h-11 w-11 md:h-14 md:w-14 shrink-0 object-contain" />
+              {logo ? (
+                <img src={cld(logo, 112)} alt="" className="h-11 w-11 md:h-14 md:w-14 shrink-0 object-contain" />
+              ) : (
+                <span aria-hidden className="h-11 w-11 md:h-14 md:w-14 shrink-0" />
+              )}
               <div className="min-w-0">
                 <p className="text-[15px] sm:text-base md:text-xl font-bold leading-tight text-primary">{schoolName}</p>
                 <p className="hidden md:block text-sm text-muted-foreground">{t("header.affiliated")}</p>
@@ -210,7 +214,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-12 w-12 shrink-0 rounded bg-white flex items-center justify-center overflow-hidden">
-                  <img src={cld(logo, 80)} alt="" className="h-10 w-10 object-contain" loading="lazy" />
+                  {logo && <img src={cld(logo, 80)} alt="" className="h-10 w-10 object-contain" loading="lazy" />}
                 </div>
                 <p className="text-lg font-semibold leading-tight">{schoolName}</p>
               </div>

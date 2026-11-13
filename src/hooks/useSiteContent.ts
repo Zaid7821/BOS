@@ -99,13 +99,42 @@ export const youtubeId = (url: string) => {
 
 const ONE_MINUTE = 60 * 1000;
 
+/**
+ * The last content seen from the server, kept in the browser so a refresh shows it
+ * straight away instead of flashing the site.ts defaults (old logo, sample stats…)
+ * while /api/content loads. index.html reads the same key to set the tab icon early.
+ */
+const CONTENT_CACHE_KEY = "bos-site-content";
+
+const readCachedContent = (): SiteContent | undefined => {
+  try {
+    const saved = localStorage.getItem(CONTENT_CACHE_KEY);
+    return saved ? (JSON.parse(saved) as SiteContent) : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const cacheContent = (data: SiteContent) => {
+  try {
+    localStorage.setItem(CONTENT_CACHE_KEY, JSON.stringify(data));
+  } catch {
+    // Storage blocked or full (private mode etc.): content just won't be remembered.
+  }
+};
+
 const useRawContent = () =>
   useQuery({
     queryKey: ["site-content"],
     queryFn: async () => {
       const res = await api<SiteContent>("/api/content");
-      return res.success && res.data ? res.data : {};
+      const data = res.success && res.data ? res.data : {};
+      // Only remember a successful answer; a failed request shouldn't wipe the saved copy.
+      if (res.success) cacheContent(data);
+      return data;
     },
+    // Shown while the real request runs; the fresh answer replaces it.
+    placeholderData: readCachedContent,
     staleTime: 5 * ONE_MINUTE,
   });
 
@@ -147,9 +176,15 @@ export const useSchool = () => {
 
 /** Website sections edited from the admin panel, falling back to src/data/site.ts. */
 export const useSiteContent = () => {
-  const { data = {} } = useRawContent();
+  // isPending = first visit, nothing remembered yet and the server hasn't answered.
+  const { data = {}, isPending } = useRawContent();
 
-  const statItems = data.stats
+  // Show nothing rather than the bundled logo, which may be the old one.
+  const logo = data.branding?.logo || (isPending ? "" : DEFAULT_LOGO);
+
+  const statItems = isPending
+    ? [] // hide the bar instead of flashing the built-in numbers
+    : data.stats
     ? [
         { value: yearsRunning(), suffix: "+", labelKey: "stats.years" },
         ...([
@@ -170,7 +205,8 @@ export const useSiteContent = () => {
     testimonials: data.testimonials ?? visible(testimonials),
     staff: data.staff ?? visible(staff),
     stats: statItems,
-    logo: data.branding?.logo || DEFAULT_LOGO,
+    /** Empty while the first load is pending and no logo is remembered: render a blank space. */
+    logo,
     hasCustomLogo: Boolean(data.branding?.logo),
     videoIds: data.videos
       ? data.videos.map((v) => youtubeId(v.url)).filter((id): id is string => Boolean(id))
