@@ -42,6 +42,10 @@ export type Stage = { level: string; classes: string; description: string; subje
 
 /** School details an admin can change. Empty or missing fields fall back to SCHOOL in site.ts. */
 export type SchoolDetails = {
+  name?: string;
+  nameHi?: string;
+  affiliationNo?: string;
+  founded?: string;
   phoneDisplay?: string;
   whatsapp?: string;
   email?: string;
@@ -149,8 +153,13 @@ const pickList = (value: string[] | undefined, fallback: string[]) => (value?.so
 export const useSchool = () => {
   const s = useRawContent().data?.school ?? {};
   const phoneDisplay = pick(s.phoneDisplay, SCHOOL.phoneDisplay);
+  const founded = /^d{4}$/.test(s.founded?.trim() ?? "") ? Number(s.founded) : SCHOOL.founded;
   return {
     ...SCHOOL,
+    name: pick(s.name, SCHOOL.name),
+    nameHi: pick(s.nameHi, SCHOOL.nameHi),
+    affiliationNo: pick(s.affiliationNo, SCHOOL.affiliationNo),
+    founded,
     phoneDisplay,
     // tel: links need digits only (plus a leading +)
     phone: s.phoneDisplay?.trim() ? phoneDisplay.replace(/[^\d+]/g, "") : SCHOOL.phone,
@@ -182,11 +191,13 @@ export const useSiteContent = () => {
   // Show nothing rather than the bundled logo, which may be the old one.
   const logo = data.branding?.logo || (isPending ? "" : DEFAULT_LOGO);
 
+  const founded = /^d{4}$/.test(data.school?.founded?.trim() ?? "") ? Number(data.school?.founded) : null;
+  const years = founded ? new Date().getFullYear() - founded : yearsRunning();
   const statItems = isPending
     ? [] // hide the bar instead of flashing the built-in numbers
     : data.stats
     ? [
-        { value: yearsRunning(), suffix: "+", labelKey: "stats.years" },
+        { value: years, suffix: "+", labelKey: "stats.years" },
         ...([
           ["students", "+", "stats.students"],
           ["teachers", "+", "stats.teachers"],
@@ -195,7 +206,7 @@ export const useSiteContent = () => {
           .map(([key, suffix, labelKey]) => ({ value: Number(data.stats?.[key]), suffix, labelKey }))
           .filter((s) => s.value > 0),
       ]
-    : visible(stats);
+    : visible(stats).map((s) => (s.labelKey === "stats.years" ? { ...s, value: years } : s));
 
   return {
     toppers: data.toppers ?? visible(toppers),

@@ -104,24 +104,117 @@ const deleteFromCloudinary = async (publicId) => {
 
 const sign = (payload) => crypto.createHmac("sha256", ADMIN_TOKEN_SECRET).update(payload).digest("hex");
 
-const makeToken = () => {
-  const expires = String(Date.now() + TOKEN_TTL_MS);
-  return `${expires}.${sign(expires)}`;
-};
-
 const safeEqual = (a, b) => {
   const ab = Buffer.from(a);
   const bb = Buffer.from(b);
   return ab.length === bb.length && crypto.timingSafeEqual(ab, bb);
 };
 
-const requireAdmin = (req, res, next) => {
+// ---------- Staff logins ----------
+// Each staff member has their own login in admin_users. ADMIN_PASSWORD still works as the
+// principal's master login (user id 0), so the school can never lock itself out.
+const ROLES = ["principal", "teacher"];
+const MASTER_USER = { id: 0, name: "Principal (master password)", role: "principal", mustChangePassword: false };
+const MIN_PASSWORD = 8;
+// Content sections teachers may edit; everything else needs the principal role.
+const TEACHER_CONTENT_KEYS = ["events"];
+// Plain names for the activity log.
+const CONTENT_LABELS = {
+  toppers: "Board toppers", events: "Upcoming events", fees: "Fee structure", transport: "Bus routes",
+  testimonials: "Reviews", staff: "Leadership & staff", stats: "Home page numbers", videos: "YouTube videos",
+  branding: "School logo", school: "School details", texts: "Page text", admissionSteps: "How to apply steps",
+  admissionDocuments: "Documents required", ageCriteria: "Age criteria", classOptions: "Classes in enquiry form",
+  sessionCalendar: "Academic calendar", streams: "Class XI–XII streams", stages: "Stages of schooling",
+};
+
+const scrypt = (password, salt) =>
+  new Promise((resolve, reject) => crypto.scrypt(password, salt, 64, (err, key) => (err ? reject(err) : resolve(key))));
+
+// Stored as "salt:hash" (hex). The plain password is never saved.
+const hashPassword = async (password) => {
+  const salt = crypto.randomBytes(16);
+  return `${salt.toString("hex")}:${(await scrypt(password, salt)).toString("hex")}`;
+};
+
+const verifyPassword = async (password, stored) => {
+  const [saltHex, hashHex] = String(stored || "").split(":");
+  if (!saltHex || !hashHex) return false;
+  const hash = await scrypt(password, Buffer.from(saltHex, "hex"));
+  const expected = Buffer.from(hashHex, "hex");
+  return hash.length === expected.length && crypto.timingSafeEqual(hash, expected);
+};
+
+// Used when the username doesn't exist, so a wrong username takes as long as a wrong password.
+const DUMMY_HASH = `${"0".repeat(32)}:${"0".repeat(128)}`;
+
+const passwordProblem = (password) =>
+  typeof password !== "string" || password.length < MIN_PASSWORD
+    ? `Password must be at least ${MIN_PASSWORD} characters.`
+    : password.length > 200
+      ? "Password is too long."
+      : "";
+
+const publicUser = (u) => ({
+  id: u.id,
+  name: u.name,
+  username: u.username,
+  role: u.role,
+  isActive: u.is_active,
+  mustChangePassword: u.must_change_password,
+  lastLoginAt: u.last_login_at,
+  createdAt: u.created_at,
+});
+
+// Token = "userId.expires.signature". The signature stops anyone editing the user id or expiry.
+const makeToken = (userId) => {
+  const payload = `${userId}.${Date.now() + TOKEN_TTL_MS}`;
+  return `${payload}.${sign(payload)}`;
+};
+
+// Routes a user who still has a temporary password may use.
+const FIRST_LOGIN_PATHS = ["/api/admin/me", "/api/admin/password"];
+
+const requireAdmin = async (req, res, next) => {
   const token = (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
-  const [expires, signature] = token.split(".");
-  if (!expires || !signature || !safeEqual(signature, sign(expires)) || Number(expires) < Date.now()) {
-    return res.status(401).json({ success: false, message: "Session expired. Please log in again." });
+  const [userId, expires, signature] = token.split(".");
+  const expired = () => res.status(401).json({ success: false, message: "Session expired. Please log in again." });
+  if (!userId || !expires || !signature || !safeEqual(signature, sign(`${userId}.${expires}`)) || Number(expires) < Date.now()) {
+    return expired();
+  }
+  if (userId === "0") {
+    req.user = MASTER_USER;
+    return next();
+  }
+  // Read the user on every request, so switching a login off or changing a role works straight away.
+  const { rows } = await pool.query(`SELECT * FROM admin_users WHERE id = $1 AND is_active = TRUE`, [Number(userId)]);
+  if (!rows[0]) return expired();
+  req.user = publicUser(rows[0]);
+  if (req.user.mustChangePassword && !FIRST_LOGIN_PATHS.includes(req.path)) {
+    return res.status(403).json({ success: false, message: "Please set your own password first." });
   }
   next();
+};
+
+// Use after requireAdmin on routes teachers must not reach (enquiries, fees, staff logins…).
+const requirePrincipal = (req, res, next) => {
+  if (req.user?.role !== "principal") {
+    return res.status(403).json({ success: false, message: "Only the principal or office can do this." });
+  }
+  next();
+};
+
+// Records who changed what. A failed log write never blocks the change itself.
+const logActivity = async (req, action, details = "") => {
+  try {
+    await pool.query(`INSERT INTO activity_log (user_id, user_name, action, details) VALUES ($1, $2, $3, $4)`, [
+      req.user.id,
+      req.user.name,
+      clean(action, 200),
+      clean(String(details), 500),
+    ]);
+  } catch (err) {
+    console.error("Could not write activity log:", err.message);
+  }
 };
 
 // ---------- Database setup ----------
@@ -176,6 +269,29 @@ async function initDb() {
       value JSONB NOT NULL,
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS admin_users (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      username TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'teacher',
+      is_active BOOLEAN NOT NULL DEFAULT TRUE,
+      must_change_password BOOLEAN NOT NULL DEFAULT TRUE,
+      last_login_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- user_name is copied in, so the history still reads correctly after a login is deleted.
+    CREATE TABLE IF NOT EXISTS activity_log (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER,
+      user_name TEXT NOT NULL,
+      action TEXT NOT NULL,
+      details TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS activity_log_created_at ON activity_log (created_at DESC);
   `);
 
   // Copy the original gallery photos in once, so admins can manage (and delete) them too.
@@ -297,51 +413,191 @@ app.get("/api/content", async (req, res) => {
 });
 
 // ---------- Admin routes ----------
-app.post("/api/admin/login", rateLimit("login", 10, 15 * 60 * 1000), (req, res) => {
-  if (!ADMIN_PASSWORD || !ADMIN_TOKEN_SECRET) {
+// Username + password logs in a staff member. An empty username with ADMIN_PASSWORD is the master login.
+app.post("/api/admin/login", rateLimit("login", 10, 15 * 60 * 1000), async (req, res) => {
+  if (!ADMIN_TOKEN_SECRET) {
     return res.status(503).json({ success: false, message: "Admin login is not configured on the server." });
   }
-  const password = typeof req.body.password === "string" ? req.body.password : "";
-  if (!safeEqual(sign(password), sign(ADMIN_PASSWORD))) {
-    return res.status(401).json({ success: false, message: "Wrong password." });
+  const username = clean(req.body.username, 60).toLowerCase();
+  const password = typeof req.body.password === "string" ? req.body.password.slice(0, 200) : "";
+  const wrong = () => res.status(401).json({ success: false, message: "Wrong username or password." });
+
+  if (!username) {
+    if (!ADMIN_PASSWORD || !safeEqual(sign(password), sign(ADMIN_PASSWORD))) return wrong();
+    req.user = MASTER_USER;
+    await logActivity(req, "Logged in");
+    return res.json({ success: true, token: makeToken(0), data: MASTER_USER });
   }
-  res.json({ success: true, token: makeToken() });
+
+  const { rows } = await pool.query(`SELECT * FROM admin_users WHERE username = $1`, [username]);
+  const user = rows[0];
+  // Check a dummy hash when the user is missing, so response time doesn't reveal which usernames exist.
+  const ok = await verifyPassword(password, user ? user.password_hash : DUMMY_HASH);
+  if (!user || !ok) return wrong();
+  if (!user.is_active) {
+    return res.status(403).json({ success: false, message: "This login has been switched off. Please ask the principal." });
+  }
+  await pool.query(`UPDATE admin_users SET last_login_at = NOW() WHERE id = $1`, [user.id]);
+  req.user = publicUser(user);
+  await logActivity(req, "Logged in");
+  res.json({ success: true, token: makeToken(user.id), data: req.user });
 });
 
-app.get("/api/admin/messages", requireAdmin, async (req, res) => {
+// Who is logged in (role, temporary password…). The panel calls this on load.
+app.get("/api/admin/me", requireAdmin, (req, res) => {
+  res.json({ success: true, data: req.user });
+});
+
+app.post("/api/admin/password", requireAdmin, async (req, res) => {
+  if (req.user.id === 0) {
+    return res.status(400).json({ success: false, message: "The master password is changed in the hosting dashboard (ADMIN_PASSWORD)." });
+  }
+  const { currentPassword, newPassword } = req.body;
+  const problem = passwordProblem(newPassword);
+  if (problem) return res.status(400).json({ success: false, message: problem });
+  const { rows } = await pool.query(`SELECT password_hash FROM admin_users WHERE id = $1`, [req.user.id]);
+  if (!(await verifyPassword(typeof currentPassword === "string" ? currentPassword : "", rows[0]?.password_hash))) {
+    return res.status(400).json({ success: false, message: "Your current password is wrong." });
+  }
+  if (currentPassword === newPassword) {
+    return res.status(400).json({ success: false, message: "Choose a new password that is different from the old one." });
+  }
+  await pool.query(`UPDATE admin_users SET password_hash = $1, must_change_password = FALSE WHERE id = $2`, [
+    await hashPassword(newPassword),
+    req.user.id,
+  ]);
+  await logActivity(req, "Changed own password");
+  res.json({ success: true, message: "Password changed." });
+});
+
+// ---------- Admin: staff logins (principal only) ----------
+const USERNAME_RE = /^[a-z0-9._-]{3,30}$/;
+
+app.get("/api/admin/users", requireAdmin, requirePrincipal, async (req, res) => {
+  const { rows } = await pool.query(`SELECT * FROM admin_users ORDER BY is_active DESC, role, name`);
+  res.json({ success: true, data: rows.map(publicUser) });
+});
+
+app.post("/api/admin/users", requireAdmin, requirePrincipal, async (req, res) => {
+  const name = clean(req.body.name, 120);
+  const username = clean(req.body.username, 30).toLowerCase();
+  const role = ROLES.includes(req.body.role) ? req.body.role : "teacher";
+  const { password } = req.body;
+  if (!name) return res.status(400).json({ success: false, message: "Please enter the staff member's name." });
+  if (!USERNAME_RE.test(username)) {
+    return res.status(400).json({ success: false, message: "Username must be 3–30 letters or numbers (dots, dashes and underscores allowed), no spaces." });
+  }
+  const problem = passwordProblem(password);
+  if (problem) return res.status(400).json({ success: false, message: problem });
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO admin_users (name, username, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING *`,
+      [name, username, await hashPassword(password), role],
+    );
+    await logActivity(req, "Added staff login", `${name} (${username}, ${role})`);
+    res.json({ success: true, data: publicUser(rows[0]) });
+  } catch (err) {
+    if (err.code === "23505") return res.status(400).json({ success: false, message: `The username “${username}” is already taken.` });
+    throw err;
+  }
+});
+
+// Change name or role, switch a login on/off, or reset a forgotten password.
+app.patch("/api/admin/users/:id", requireAdmin, requirePrincipal, async (req, res) => {
+  const id = Number(req.params.id);
+  const self = id === req.user.id;
+  const name = typeof req.body.name === "string" ? clean(req.body.name, 120) || null : null;
+  const role = ROLES.includes(req.body.role) ? req.body.role : null;
+  const isActive = typeof req.body.isActive === "boolean" ? req.body.isActive : null;
+  const password = req.body.password;
+  // Stops a principal accidentally locking themselves out.
+  if (self && ((role && role !== "principal") || isActive === false)) {
+    return res.status(400).json({ success: false, message: "You can't switch off or demote your own login." });
+  }
+  if (password !== undefined) {
+    const problem = passwordProblem(password);
+    if (problem) return res.status(400).json({ success: false, message: problem });
+  }
+  const { rows } = await pool.query(
+    `UPDATE admin_users SET
+       name = COALESCE($1, name),
+       role = COALESCE($2, role),
+       is_active = COALESCE($3, is_active),
+       password_hash = COALESCE($4, password_hash),
+       must_change_password = CASE WHEN $4::text IS NULL THEN must_change_password ELSE TRUE END
+     WHERE id = $5 RETURNING *`,
+    [name, role, isActive, password === undefined ? null : await hashPassword(password), id],
+  );
+  const user = rows[0];
+  if (!user) return res.status(404).json({ success: false, message: "Staff login not found." });
+  const changes = [
+    name && `name → ${name}`,
+    role && `role → ${role}`,
+    isActive !== null && (isActive ? "switched on" : "switched off"),
+    password !== undefined && "password reset",
+  ].filter(Boolean);
+  await logActivity(req, "Changed staff login", `${user.name} (${user.username}): ${changes.join(", ")}`);
+  res.json({ success: true, data: publicUser(user) });
+});
+
+// The activity log keeps the person's name, so their past changes still show after this.
+app.delete("/api/admin/users/:id", requireAdmin, requirePrincipal, async (req, res) => {
+  const id = Number(req.params.id);
+  if (id === req.user.id) return res.status(400).json({ success: false, message: "You can't delete your own login." });
+  const { rows } = await pool.query(`DELETE FROM admin_users WHERE id = $1 RETURNING name, username`, [id]);
+  if (rows[0]) await logActivity(req, "Deleted staff login", `${rows[0].name} (${rows[0].username})`);
+  res.json({ success: true });
+});
+
+app.get("/api/admin/activity", requireAdmin, requirePrincipal, async (req, res) => {
+  const { rows } = await pool.query(`SELECT * FROM activity_log ORDER BY created_at DESC, id DESC LIMIT 500`);
+  res.json({ success: true, data: rows });
+});
+
+// ---------- Admin: messages and enquiries (principal only: they hold parents' phone numbers) ----------
+app.get("/api/admin/messages", requireAdmin, requirePrincipal, async (req, res) => {
   const { rows } = await pool.query(`SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 500`);
   res.json({ success: true, data: rows });
 });
 
-app.delete("/api/admin/messages/:id", requireAdmin, async (req, res) => {
-  await pool.query(`DELETE FROM contact_messages WHERE id = $1`, [Number(req.params.id)]);
+app.delete("/api/admin/messages/:id", requireAdmin, requirePrincipal, async (req, res) => {
+  const { rows } = await pool.query(`DELETE FROM contact_messages WHERE id = $1 RETURNING name, subject`, [Number(req.params.id)]);
+  if (rows[0]) await logActivity(req, "Deleted message", `From ${rows[0].name}: ${rows[0].subject}`);
   res.json({ success: true });
 });
 
-app.get("/api/admin/enquiries", requireAdmin, async (req, res) => {
+app.get("/api/admin/enquiries", requireAdmin, requirePrincipal, async (req, res) => {
   const { rows } = await pool.query(`SELECT * FROM admission_enquiries ORDER BY created_at DESC LIMIT 500`);
   res.json({ success: true, data: rows });
 });
 
-app.patch("/api/admin/enquiries/:id", requireAdmin, async (req, res) => {
+app.patch("/api/admin/enquiries/:id", requireAdmin, requirePrincipal, async (req, res) => {
   const status = req.body.status === undefined ? null : clean(req.body.status, 20);
   if (status !== null && !ENQUIRY_STATUSES.includes(status)) {
     return res.status(400).json({ success: false, message: "Invalid status." });
   }
   const note = typeof req.body.note === "string" ? clean(req.body.note, 1000) : null;
-  await pool.query(
-    `UPDATE admission_enquiries SET status = COALESCE($1, status), admin_note = COALESCE($2, admin_note) WHERE id = $3`,
+  const { rows } = await pool.query(
+    `UPDATE admission_enquiries SET status = COALESCE($1, status), admin_note = COALESCE($2, admin_note) WHERE id = $3
+     RETURNING student_name, class_applying`,
     [status, note, Number(req.params.id)],
   );
+  if (rows[0]) {
+    const who = `${rows[0].student_name} (${rows[0].class_applying})`;
+    await logActivity(req, status ? `Marked enquiry ${status}` : "Updated enquiry note", who);
+  }
   res.json({ success: true });
 });
 
-app.delete("/api/admin/enquiries/:id", requireAdmin, async (req, res) => {
-  await pool.query(`DELETE FROM admission_enquiries WHERE id = $1`, [Number(req.params.id)]);
+app.delete("/api/admin/enquiries/:id", requireAdmin, requirePrincipal, async (req, res) => {
+  const { rows } = await pool.query(`DELETE FROM admission_enquiries WHERE id = $1 RETURNING student_name, class_applying`, [
+    Number(req.params.id),
+  ]);
+  if (rows[0]) await logActivity(req, "Deleted enquiry", `${rows[0].student_name} (${rows[0].class_applying})`);
   res.json({ success: true });
 });
 
-// ---------- Admin: gallery ----------
+// ---------- Admin: gallery (teachers too) ----------
 // Gives the browser a short-lived signature so it can upload straight to Cloudinary
 // without the API secret ever leaving the server.
 app.get("/api/admin/upload-signature", requireAdmin, (req, res) => {
@@ -378,30 +634,43 @@ app.post("/api/admin/gallery", requireAdmin, async (req, res) => {
     `INSERT INTO gallery_photos (url, public_id, caption, category) VALUES ($1, $2, $3, $4) RETURNING *`,
     [url, publicId || null, caption, category],
   );
+  await logActivity(req, "Added gallery photo", caption || category);
   res.json({ success: true, data: rows[0] });
 });
 
 app.patch("/api/admin/gallery/:id", requireAdmin, async (req, res) => {
   const caption = typeof req.body.caption === "string" ? clean(req.body.caption, 200) : null;
   const category = typeof req.body.category === "string" ? clean(req.body.category, 40).toLowerCase() || null : null;
-  await pool.query(
-    `UPDATE gallery_photos SET caption = COALESCE($1, caption), category = COALESCE($2, category) WHERE id = $3`,
+  const { rows } = await pool.query(
+    `UPDATE gallery_photos SET caption = COALESCE($1, caption), category = COALESCE($2, category) WHERE id = $3 RETURNING caption, category`,
     [caption, category, Number(req.params.id)],
   );
+  if (rows[0]) await logActivity(req, "Edited gallery photo", rows[0].caption || rows[0].category);
   res.json({ success: true });
 });
 
 app.delete("/api/admin/gallery/:id", requireAdmin, async (req, res) => {
-  const { rows } = await pool.query(`DELETE FROM gallery_photos WHERE id = $1 RETURNING public_id`, [Number(req.params.id)]);
+  const { rows } = await pool.query(`DELETE FROM gallery_photos WHERE id = $1 RETURNING public_id, caption, category`, [
+    Number(req.params.id),
+  ]);
   // Only photos uploaded through the admin panel have a public_id; those are removed from Cloudinary too.
   if (rows[0]?.public_id) await deleteFromCloudinary(rows[0].public_id);
+  if (rows[0]) await logActivity(req, "Deleted gallery photo", rows[0].caption || rows[0].category);
   res.json({ success: true });
 });
 
 // ---------- Admin: website content ----------
-app.put("/api/admin/content/:key", requireAdmin, async (req, res) => {
+// Teachers may edit only TEACHER_CONTENT_KEYS; the principal may edit every section.
+const canEditContent = (req, res, next) => {
+  if (!CONTENT_KEYS.includes(req.params.key)) return res.status(400).json({ success: false, message: "Unknown section." });
+  if (req.user.role !== "principal" && !TEACHER_CONTENT_KEYS.includes(req.params.key)) {
+    return res.status(403).json({ success: false, message: "Only the principal or office can change this section." });
+  }
+  next();
+};
+
+app.put("/api/admin/content/:key", requireAdmin, canEditContent, async (req, res) => {
   const { key } = req.params;
-  if (!CONTENT_KEYS.includes(key)) return res.status(400).json({ success: false, message: "Unknown section." });
   const { value } = req.body;
   if (value === null || typeof value !== "object") {
     return res.status(400).json({ success: false, message: "Nothing to save." });
@@ -420,16 +689,18 @@ app.put("/api/admin/content/:key", requireAdmin, async (req, res) => {
      ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
     [key, JSON.stringify(value)],
   );
+  await logActivity(req, "Saved website section", CONTENT_LABELS[key] ?? key);
   res.json({ success: true, message: "Saved. The website now shows the new content." });
 });
 
 // Removing a section's saved value makes the website fall back to the built-in content again.
-app.delete("/api/admin/content/:key", requireAdmin, async (req, res) => {
-  if (!CONTENT_KEYS.includes(req.params.key)) return res.status(400).json({ success: false, message: "Unknown section." });
-  await pool.query(`DELETE FROM site_content WHERE key = $1`, [req.params.key]);
+app.delete("/api/admin/content/:key", requireAdmin, canEditContent, async (req, res) => {
+  const { rowCount } = await pool.query(`DELETE FROM site_content WHERE key = $1`, [req.params.key]);
+  if (rowCount) await logActivity(req, "Reset website section to original", CONTENT_LABELS[req.params.key] ?? req.params.key);
   res.json({ success: true });
 });
 
+// ---------- Admin: notices (teachers too) ----------
 app.get("/api/admin/notices", requireAdmin, async (req, res) => {
   const { rows } = await pool.query(`SELECT * FROM notices ORDER BY created_at DESC`);
   res.json({ success: true, data: rows });
@@ -447,6 +718,7 @@ app.post("/api/admin/notices", requireAdmin, async (req, res) => {
     `INSERT INTO notices (title, body, link, is_important) VALUES ($1, $2, $3, $4) RETURNING *`,
     [title, body || null, link || null, Boolean(req.body.isImportant)],
   );
+  await logActivity(req, "Posted notice", title);
   res.json({ success: true, data: rows[0] });
 });
 
@@ -461,14 +733,14 @@ app.patch("/api/admin/notices/:id", requireAdmin, async (req, res) => {
     return res.status(400).json({ success: false, message: "Link must start with https:// or /" });
   }
   // Empty strings clear body/link; null (not sent) leaves the column unchanged.
-  await pool.query(
+  const { rows } = await pool.query(
     `UPDATE notices SET
        is_active = COALESCE($1, is_active),
        is_important = COALESCE($2, is_important),
        title = COALESCE($3, title),
        body = CASE WHEN $4::text IS NULL THEN body ELSE NULLIF($4, '') END,
        link = CASE WHEN $5::text IS NULL THEN link ELSE NULLIF($5, '') END
-     WHERE id = $6`,
+     WHERE id = $6 RETURNING title`,
     [
       typeof isActive === "boolean" ? isActive : null,
       typeof isImportant === "boolean" ? isImportant : null,
@@ -478,11 +750,19 @@ app.patch("/api/admin/notices/:id", requireAdmin, async (req, res) => {
       Number(req.params.id),
     ],
   );
+  if (rows[0]) {
+    const action =
+      typeof isActive === "boolean" ? (isActive ? "Showed notice" : "Hid notice")
+      : typeof isImportant === "boolean" ? (isImportant ? "Marked notice important" : "Unmarked notice important")
+      : "Edited notice";
+    await logActivity(req, action, rows[0].title);
+  }
   res.json({ success: true });
 });
 
 app.delete("/api/admin/notices/:id", requireAdmin, async (req, res) => {
-  await pool.query(`DELETE FROM notices WHERE id = $1`, [Number(req.params.id)]);
+  const { rows } = await pool.query(`DELETE FROM notices WHERE id = $1 RETURNING title`, [Number(req.params.id)]);
+  if (rows[0]) await logActivity(req, "Deleted notice", rows[0].title);
   res.json({ success: true });
 });
 
@@ -495,7 +775,7 @@ app.use((err, req, res, next) => {
 // ---------- Start ----------
 initDb()
   .then(() => {
-    console.log("Database ready (contact_messages, admission_enquiries, notices, gallery_photos, site_content).");
+    console.log("Database ready (contact_messages, admission_enquiries, notices, gallery_photos, site_content, admin_users, activity_log).");
     if (!cloudinaryReady) console.log("Cloudinary keys not set: admins can add gallery photos by link only.");
     app.listen(PORT, () => console.log(`Backend server running on port ${PORT}`));
   })

@@ -11,18 +11,18 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 const Admissions = () => {
   const school = useSchool();
   const { admissionSteps, admissionDocuments, ageCriteria } = useSiteContent();
-  const { t } = useLanguage();
-  usePageTitle("Admissions");
+  const { lang, t } = useLanguage();
+  usePageTitle(t("nav.admissions"));
 
   return (
     <Layout>
       <div className="space-y-12 md:space-y-16">
         <section className="bg-gradient-subtle py-10 md:py-16">
           <div className="container mx-auto px-4 text-center">
-            <Badge variant="secondary" className="mb-6">Nursery to Class XI</Badge>
-            <h1 className="text-3xl md:text-5xl font-bold text-primary mb-4 md:mb-6">Admissions</h1>
+            <Badge variant="secondary" className="mb-6">{t("admissions.badge")}</Badge>
+            <h1 className="text-3xl md:text-5xl font-bold text-primary mb-4 md:mb-6">{t("admissions.title")}</h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-              Join {school.name}, a CBSE-affiliated school in Fatehpur. Here is everything you need to apply.
+              {t("admissions.intro", { name: lang === "hi" ? school.nameHi : school.name })}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button variant="hero" size="lg" asChild>
@@ -42,7 +42,7 @@ const Admissions = () => {
         <section className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-primary mb-8">How to apply</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-primary mb-8">{t("admissions.stepsTitle")}</h2>
               <ol className="space-y-6">
                 {admissionSteps.map((step, index) => (
                   <li key={step.title} className="flex gap-4">
@@ -57,7 +57,7 @@ const Admissions = () => {
                 ))}
               </ol>
               <div className="mt-8 rounded-lg bg-secondary-lighter p-5">
-                <p className="font-semibold mb-2">Prefer to talk?</p>
+                <p className="font-semibold mb-2">{t("admissions.talk")}</p>
                 <a href={`tel:${school.phone}`} className="inline-flex items-center gap-2 text-lg font-bold text-primary hover:underline">
                   <Phone className="h-5 w-5" aria-hidden="true" />
                   {school.phoneDisplay}
@@ -74,7 +74,7 @@ const Admissions = () => {
           <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8">
             <Card className="shadow-school-sm border-primary/10">
               <CardHeader>
-                <CardTitle className="text-2xl text-primary">Documents required</CardTitle>
+                <CardTitle className="text-2xl text-primary">{t("admissions.documentsTitle")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
@@ -89,14 +89,14 @@ const Admissions = () => {
             </Card>
             <Card className="shadow-school-sm border-primary/10">
               <CardHeader>
-                <CardTitle className="text-2xl text-primary">Age criteria (early years)</CardTitle>
+                <CardTitle className="text-2xl text-primary">{t("admissions.ageTitle")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <table className="w-full text-left">
                   <thead>
                     <tr className="border-b">
-                      <th className="py-2 font-semibold">Class</th>
-                      <th className="py-2 font-semibold">Minimum age</th>
+                      <th className="py-2 font-semibold">{t("admissions.ageClass")}</th>
+                      <th className="py-2 font-semibold">{t("admissions.ageMin")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -108,9 +108,7 @@ const Admissions = () => {
                     ))}
                   </tbody>
                 </table>
-                <p className="text-sm text-muted-foreground mt-4">
-                  Admission to Class XI is based on Class X board results and seat availability in each stream.
-                </p>
+                <p className="text-sm text-muted-foreground mt-4">{t("admissions.class11Note")}</p>
               </CardContent>
             </Card>
           </div>

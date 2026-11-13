@@ -5,12 +5,18 @@ import { Award, BookOpen, Users, ShieldCheck } from "lucide-react";
 import StatsCounter from "@/components/StatsCounter";
 import SampleTag from "@/components/SampleTag";
 import { useSchool, useSiteContent } from "@/hooks/useSiteContent";
+import { useLanguage } from "@/lib/i18n";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 const About = () => {
   const school = useSchool();
-  usePageTitle("About Us");
+  const { lang, t } = useLanguage();
+  usePageTitle(t("nav.about"));
   const staffList = useSiteContent().staff;
+  const vars = { year: school.founded, name: lang === "hi" ? school.nameHi : school.name };
+  // Admin-written history (School details) wins; otherwise the built-in text in the visitor's language.
+  const history = school.aboutHistory ?? t("about.history", vars).split(/\n\s*\n/);
+  const values = t("about.values").split("\n").map((v) => v.trim()).filter(Boolean);
 
   return (
     <Layout>
@@ -18,11 +24,9 @@ const About = () => {
         {/* Hero */}
         <section className="bg-gradient-subtle py-10 md:py-16">
           <div className="container mx-auto px-4 text-center">
-            <Badge variant="secondary" className="mb-6">About Our School</Badge>
-            <h1 className="text-3xl md:text-5xl font-bold text-primary mb-4 md:mb-6">Excellence in education since {school.founded}</h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-              Our history, our values, and the people who teach our students.
-            </p>
+            <Badge variant="secondary" className="mb-6">{t("about.badge")}</Badge>
+            <h1 className="text-3xl md:text-5xl font-bold text-primary mb-4 md:mb-6">{t("about.title", vars)}</h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">{t("about.intro", vars)}</p>
           </div>
         </section>
 
@@ -30,46 +34,29 @@ const About = () => {
         <section className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-8 lg:gap-12">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6">Our history</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6">{t("about.historyTitle")}</h2>
               <div className="space-y-4 text-muted-foreground leading-relaxed max-w-prose">
-                {school.aboutHistory ? (
-                  school.aboutHistory.map((para, i) => <p key={i} className="whitespace-pre-line">{para}</p>)
-                ) : (
-                <>
-                <p>
-                  Founded in {school.founded} in Pakka Talab, Fatehpur, Brilliant Oriental School began with a clear aim: to give
-                  children of the region a strong education together with good character and values.
-                </p>
-                <p>
-                  Over the years the school has grown steadily, and it is now <strong className="text-foreground">{school.name}</strong>,
-                  affiliated to the Central Board of Secondary Education (CBSE), New Delhi, offering classes from Nursery to Class XII.
-                </p>
-                <p>
-                  Our students are prepared for the CBSE Class X and Class XII board examinations, and for the colleges and careers
-                  that follow.
-                </p>
-                </>
-                )}
+                {history.map((para, i) => <p key={i} className="whitespace-pre-line">{para}</p>)}
               </div>
             </div>
 
             <Card className="border-primary/20 shadow-school-md self-start">
               <CardHeader>
                 <ShieldCheck className="h-10 w-10 text-accent mb-2" aria-hidden="true" />
-                <CardTitle className="text-2xl text-primary">CBSE affiliation</CardTitle>
-                <CardDescription>Central Board of Secondary Education, New Delhi</CardDescription>
+                <CardTitle className="text-2xl text-primary">{t("about.affiliationTitle")}</CardTitle>
+                <CardDescription>{t("about.affiliationBoard")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between border-b pb-2">
-                  <span className="text-muted-foreground">Affiliation no.</span>
+                  <span className="text-muted-foreground">{t("header.affiliationNo")}</span>
                   <span className="font-bold text-primary">{school.affiliationNo}</span>
                 </div>
                 <div className="flex justify-between gap-4 border-b pb-2">
-                  <span className="text-muted-foreground">Level</span>
-                  <span className="font-semibold text-right">Senior Secondary (up to Class XII)</span>
+                  <span className="text-muted-foreground">{t("about.levelLabel")}</span>
+                  <span className="font-semibold text-right">{t("about.level")}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Established</span>
+                  <span className="text-muted-foreground">{t("about.establishedLabel")}</span>
                   <span className="font-semibold">{school.founded}</span>
                 </div>
               </CardContent>
@@ -84,38 +71,29 @@ const About = () => {
               <Card className="bg-white/10 border-white/20 text-primary-foreground">
                 <CardHeader className="text-center">
                   <BookOpen className="h-12 w-12 mx-auto mb-4 text-secondary" aria-hidden="true" />
-                  <CardTitle className="text-xl">Our Mission</CardTitle>
+                  <CardTitle className="text-xl">{t("about.missionTitle")}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-primary-foreground/90">
-                    To give every child a complete education that combines rigorous academics with good values, critical thinking,
-                    and creativity.
-                  </p>
+                  <p className="text-primary-foreground/90">{t("home.missionText")}</p>
                 </CardContent>
               </Card>
               <Card className="bg-white/10 border-white/20 text-primary-foreground">
                 <CardHeader className="text-center">
                   <Award className="h-12 w-12 mx-auto mb-4 text-secondary" aria-hidden="true" />
-                  <CardTitle className="text-xl">Our Vision</CardTitle>
+                  <CardTitle className="text-xl">{t("about.visionTitle")}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-primary-foreground/90">
-                    To be a leading school in the region that shapes students with strong character, academic excellence, and respect
-                    for every culture.
-                  </p>
+                  <p className="text-primary-foreground/90">{t("home.visionText")}</p>
                 </CardContent>
               </Card>
               <Card className="bg-white/10 border-white/20 text-primary-foreground">
                 <CardHeader className="text-center">
                   <Users className="h-12 w-12 mx-auto mb-4 text-secondary" aria-hidden="true" />
-                  <CardTitle className="text-xl">Our Values</CardTitle>
+                  <CardTitle className="text-xl">{t("about.valuesTitle")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 text-primary-foreground/90 list-disc pl-5">
-                    <li>Excellence in education</li>
-                    <li>Faith, honesty and good manners</li>
-                    <li>Discipline and respect for all</li>
-                    <li>Curiosity and creativity</li>
+                    {values.map((v) => <li key={v}>{v}</li>)}
                   </ul>
                 </CardContent>
               </Card>
@@ -127,7 +105,7 @@ const About = () => {
         {staffList.length > 0 && (
           <section className="container mx-auto px-4">
             <div className="text-center mb-8 md:mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold text-primary mb-4">Our leadership & faculty</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-primary mb-4">{t("about.staffTitle")}</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {staffList.map((member, index) => (

@@ -9,13 +9,15 @@ import "yet-another-react-lightbox/plugins/thumbnails.css";
 import { Youtube } from "lucide-react";
 import { useGallery, useSchool, useSiteContent } from "@/hooks/useSiteContent";
 import { cld, cldSrcSet } from "@/lib/cloudinary";
+import { useLanguage } from "@/lib/i18n";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 const label = (c: string) => c.charAt(0).toUpperCase() + c.slice(1);
 
 const Gallery = () => {
   const school = useSchool();
-  usePageTitle("Gallery");
+  const { t } = useLanguage();
+  usePageTitle(t("nav.gallery"));
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -32,8 +34,8 @@ const Gallery = () => {
       <div className="space-y-12 md:space-y-16">
         <section className="bg-gradient-subtle py-10 md:py-16">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-3xl md:text-5xl font-bold text-primary mb-4 md:mb-6">School Gallery</h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">Our campus, classrooms, and events.</p>
+            <h1 className="text-3xl md:text-5xl font-bold text-primary mb-4 md:mb-6">{t("gallery.title")}</h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">{t("gallery.intro")}</p>
           </div>
         </section>
 
@@ -59,7 +61,7 @@ const Gallery = () => {
 
           {isLoading && <p className="text-center text-muted-foreground">Loading photos…</p>}
           {!isLoading && filteredImages.length === 0 && (
-            <p className="text-center text-muted-foreground">New photos will appear here soon.</p>
+            <p className="text-center text-muted-foreground">{t("gallery.empty")}</p>
           )}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
             {filteredImages.map((img, index) => (
@@ -87,7 +89,7 @@ const Gallery = () => {
         </section>
 
         <section className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6 text-center">Videos</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6 text-center">{t("gallery.videosTitle")}</h2>
           {youtubeVideoIds.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
               {youtubeVideoIds.map((id) => (
@@ -108,7 +110,7 @@ const Gallery = () => {
             <Button variant="outline" size="lg" className="h-auto whitespace-normal py-3" asChild>
               <a href={school.social.youtube} target="_blank" rel="noopener noreferrer">
                 <Youtube className="h-5 w-5 mr-2 text-red-600" aria-hidden="true" />
-                Watch more on our YouTube channel
+                {t("gallery.youtube")}
               </a>
             </Button>
           </div>

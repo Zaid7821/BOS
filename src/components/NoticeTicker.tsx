@@ -11,7 +11,7 @@ const NoticeTicker = () => {
 
   const items = notices.map((n) => (
     <span key={n.id} className="mx-8 inline-flex items-center gap-2">
-      {n.is_important && <span className="rounded bg-red-600 px-1.5 py-0.5 text-[11px] font-bold text-white">NEW</span>}
+      {n.is_important && <span className="rounded bg-red-600 px-1.5 py-0.5 text-[11px] font-bold text-white">{t("notice.new")}</span>}
       {n.title}
     </span>
   ));
