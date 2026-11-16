@@ -219,3 +219,60 @@ export const galleryImages = [
 
 // Paste YouTube video IDs here (the part after "watch?v=") to embed them in the gallery.
 export const youtubeVideoIds: string[] = [];
+
+// ---------- CBSE Mandatory Public Disclosure (Appendix IX, Affiliation Bye-Laws 2018) ----------
+// The row names follow CBSE's format. Values start empty: the office fills them in the admin panel
+// (Website content > CBSE disclosure). Empty values show as "—" on the website.
+const row = (label: string, value = "") => ({ label, value });
+const doc = (title: string) => ({ title, url: "" });
+
+export const disclosureGeneral = [
+  row("Name of the school", SCHOOL.name),
+  row("Affiliation No.", SCHOOL.affiliationNo),
+  row("School code"),
+  row("Complete address with pin code", SCHOOL.addressLines.join(", ")),
+  row("Principal name"),
+  row("Principal qualification"),
+  row("School email ID", SCHOOL.email),
+  row("Contact details (landline / mobile)", SCHOOL.phoneDisplay),
+];
+
+export const disclosureDocuments = [
+  doc("Copies of affiliation / upgradation letter and recent extension of affiliation, if any"),
+  doc("Copies of societies / trust / company registration / renewal certificate, as applicable"),
+  doc("Copy of No Objection Certificate (NOC) issued, if applicable, by the State Govt. / UT"),
+  doc("Copies of recognition certificate under RTE Act, 2009, and its renewal if applicable"),
+  doc("Copy of valid building safety certificate as per the National Building Code"),
+  doc("Copy of valid fire safety certificate issued by the competent authority"),
+  doc("Copy of the DEO certificate submitted by the school for affiliation / upgradation / extension of affiliation, or self certification by school"),
+  doc("Copies of valid water, health and sanitation certificates"),
+];
+
+export const disclosureAcademics = [
+  doc("Fee structure of the school"),
+  doc("Annual academic calendar"),
+  doc("List of School Management Committee (SMC)"),
+  doc("List of Parents Teachers Association (PTA) members"),
+  doc("Last three-year result of the board examination as per applicability"),
+];
+
+export const disclosureStaff = [
+  row("Principal"),
+  row("Total no. of teachers"),
+  row("PGT"),
+  row("TGT"),
+  row("PRT"),
+  row("Teachers section ratio"),
+  row("Details of special educator"),
+  row("Details of counsellor and wellness teacher"),
+];
+
+export const disclosureInfrastructure = [
+  row("Total campus area of the school (in square metres)"),
+  row("No. and size of the classrooms (in square metres)"),
+  row("No. and size of laboratories including computer labs (in square metres)"),
+  row("Internet facility (Y / N)"),
+  row("No. of girls' toilets"),
+  row("No. of boys' toilets"),
+  row("Link of YouTube video of the inspection of school covering the infrastructure of the school"),
+];

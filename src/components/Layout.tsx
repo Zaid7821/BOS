@@ -105,9 +105,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 {school.addressShort}
               </span>
             </div>
-            <span className="font-medium text-primary">
-              {t("header.affiliationNo")} {school.affiliationNo}
-            </span>
+            <div className="flex items-center gap-4">
+              <Link to="/mandatory-disclosure" className="hover:text-primary hover:underline">
+                {t("nav.disclosure")}
+              </Link>
+              <span className="font-medium text-primary">
+                {t("header.affiliationNo")} {school.affiliationNo}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -244,7 +249,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <div>
               <h2 className="text-lg font-semibold mb-4">{t("footer.quickLinks")}</h2>
               <ul className="space-y-2">
-                {navItems.slice(1).map((item) => (
+                {[...navItems.slice(1), { to: "/mandatory-disclosure", key: "nav.disclosure" as TKey }].map((item) => (
                   <li key={item.to}>
                     <Link to={item.to} className="text-sm text-primary-foreground/80 hover:text-primary-foreground hover:underline">
                       {t(item.key)}

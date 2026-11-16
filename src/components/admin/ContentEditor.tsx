@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, Plus, Trash2, Upload } from "lucide-react";
+import { ArrowDown, ArrowUp, ExternalLink, Plus, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,11 @@ import {
   admissionSteps,
   ageCriteria,
   classOptions,
+  disclosureAcademics,
+  disclosureDocuments,
+  disclosureGeneral,
+  disclosureInfrastructure,
+  disclosureStaff,
   events,
   fees,
   sessionCalendar,
@@ -32,8 +37,9 @@ import {
 
 const SAMPLE = "__sample";
 
-type FieldType = "text" | "textarea" | "list" | "image";
-type Field = { key: string; label: string; type?: FieldType; placeholder?: string; required?: boolean };
+// "document": a PDF (or photo of a certificate) uploaded to Cloudinary, or a pasted link such as Google Drive.
+type FieldType = "text" | "textarea" | "list" | "image" | "document";
+type Field = { key: string; label: string; type?: FieldType; placeholder?: string; required?: boolean; hint?: string };
 type ListSection = {
   key: Exclude<keyof SiteContent, "stats" | "branding" | "school" | "texts">;
   group: string;
@@ -220,6 +226,82 @@ const SECTIONS: ListSection[] = [
       { key: "period", label: "When", placeholder: "September – October", required: true },
     ],
   },
+  {
+    key: "disclosureGeneral",
+    group: "CBSE disclosure",
+    title: "A. General information",
+    hint: "Section A of the Mandatory Public Disclosure page that CBSE requires on every school website.",
+    item: "row",
+    defaults: disclosureGeneral,
+    fields: [
+      { key: "label", label: "Information", required: true },
+      { key: "value", label: "Details", placeholder: "Leave empty if not available yet" },
+    ],
+  },
+  {
+    key: "disclosureDocuments",
+    group: "CBSE disclosure",
+    title: "B. Documents & certificates",
+    hint: "Section B: self-attested copies of the school’s certificates. CBSE may check these during inspection.",
+    item: "document",
+    defaults: disclosureDocuments,
+    fields: [
+      { key: "title", label: "Document", type: "textarea", required: true },
+      { key: "url", label: "PDF or link", type: "document", hint: "Upload the PDF, or paste a Google Drive link set to “Anyone with the link”. Leave empty if not available yet." },
+    ],
+  },
+  {
+    key: "disclosureAcademics",
+    group: "CBSE disclosure",
+    title: "C. Academic documents",
+    hint: "Section C, part 1: fee structure, calendar, SMC and PTA lists, result summary.",
+    item: "document",
+    defaults: disclosureAcademics,
+    fields: [
+      { key: "title", label: "Document", type: "textarea", required: true },
+      { key: "url", label: "PDF or link", type: "document", hint: "Upload the PDF, or paste a Google Drive link set to “Anyone with the link”. Leave empty if not available yet." },
+    ],
+  },
+  {
+    key: "disclosureResults",
+    group: "CBSE disclosure",
+    title: "C. Board results (last 3 years)",
+    hint: "Section C, part 2: one entry per class per year. The pass % is worked out automatically if you leave it empty.",
+    item: "result",
+    defaults: [],
+    fields: [
+      { key: "exam", label: "Class", placeholder: "Class X or Class XII", required: true },
+      { key: "year", label: "Year", placeholder: "2026", required: true },
+      { key: "registered", label: "No. of students registered", placeholder: "120" },
+      { key: "passed", label: "No. of students passed", placeholder: "118" },
+      { key: "percentage", label: "Pass % (optional)", placeholder: "98.3" },
+      { key: "remarks", label: "Remarks" },
+    ],
+  },
+  {
+    key: "disclosureStaff",
+    group: "CBSE disclosure",
+    title: "D. Teaching staff",
+    hint: "Section D: numbers of teachers and special staff.",
+    item: "row",
+    defaults: disclosureStaff,
+    fields: [
+      { key: "label", label: "Information", required: true },
+      { key: "value", label: "Details", placeholder: "Leave empty if not available yet" },
+    ],
+  },
+  {
+    key: "disclosureInfrastructure",
+    group: "CBSE disclosure",
+    title: "E. School infrastructure",
+    hint: "Section E: campus area, rooms, toilets and the YouTube video of the school (paste the full link).",
+    item: "row",
+    defaults: disclosureInfrastructure,
+    fields: [
+      { key: "label", label: "Information", required: true },
+      { key: "value", label: "Details", placeholder: "Leave empty if not available yet" },
+    ],
+  },
 ];
 
 type Row = Record<string, string>;
@@ -358,10 +440,26 @@ const ListEditor = ({ section, saved, token, onError }: { section: ListSection; 
                           </label>
                         </Button>
                       </div>
+                    ) : f.type === "document" ? (
+                      <div className="flex items-center gap-2">
+                        <Input id={id} type="url" value={row[f.key]} placeholder="https://… or upload" onChange={(e) => set(i, f.key, e.target.value)} />
+                        {row[f.key] && (
+                          <Button size="icon" variant="outline" className="shrink-0" asChild aria-label="Open document">
+                            <a href={row[f.key]} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" aria-hidden="true" /></a>
+                          </Button>
+                        )}
+                        <Button size="icon" variant="outline" className="shrink-0" asChild aria-label="Upload PDF">
+                          <label className="cursor-pointer">
+                            <Upload className="h-4 w-4" aria-hidden="true" />
+                            <input type="file" accept="application/pdf,image/*" className="sr-only" disabled={uploading !== null} onChange={(e) => upload(i, f.key, e.target.files?.[0])} />
+                          </label>
+                        </Button>
+                      </div>
                     ) : (
                       <Input id={id} value={row[f.key]} placeholder={f.placeholder} onChange={(e) => set(i, f.key, e.target.value)} />
                     )}
                     {uploading === `${i}-${f.key}` && <p className="text-xs text-muted-foreground">Uploading…</p>}
+                    {f.hint && <p className="text-xs text-muted-foreground">{f.hint}</p>}
                   </div>
                 );
               })}
@@ -781,7 +879,7 @@ const SPECIAL = [
 
 const MENU = [
   { group: "School", items: SPECIAL.map(({ key, title }) => ({ key, title })) },
-  ...["Home & About", "Admissions & fees", "Academics", "Events & media"].map((group) => ({
+  ...["Home & About", "Admissions & fees", "Academics", "Events & media", "CBSE disclosure"].map((group) => ({
     group,
     items: SECTIONS.filter((s) => s.group === group).map(({ key, title }) => ({ key, title })),
   })),

@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 // Loaded on demand so the main bundle stays small
 const Gallery = lazy(() => import("./pages/Gallery"));
 const Admin = lazy(() => import("./pages/Admin"));
+const Disclosure = lazy(() => import("./pages/Disclosure"));
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/events" element={<Events />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/mandatory-disclosure" element={<Disclosure />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

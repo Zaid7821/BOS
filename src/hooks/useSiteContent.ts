@@ -6,6 +6,11 @@ import {
   admissionSteps,
   ageCriteria,
   classOptions,
+  disclosureAcademics,
+  disclosureDocuments,
+  disclosureGeneral,
+  disclosureInfrastructure,
+  disclosureStaff,
   events,
   type Sampleable,
   fees,
@@ -39,6 +44,10 @@ export type AgeRule = { className: string; age: string };
 export type CalendarItem = { term: string; period: string };
 export type Stream = { name: string; subjects: string[] };
 export type Stage = { level: string; classes: string; description: string; subjects: string[] };
+/** CBSE disclosure rows: a fixed label and the school's answer, or a document title and its PDF link. */
+export type DisclosureRow = { label: string; value: string };
+export type DisclosureDoc = { title: string; url: string };
+export type BoardResult = { exam: string; year: string; registered: string; passed: string; percentage: string; remarks: string };
 
 /** School details an admin can change. Empty or missing fields fall back to SCHOOL in site.ts. */
 export type SchoolDetails = {
@@ -87,6 +96,12 @@ export type SiteContent = {
   sessionCalendar?: CalendarItem[];
   streams?: Stream[];
   stages?: Stage[];
+  disclosureGeneral?: DisclosureRow[];
+  disclosureDocuments?: DisclosureDoc[];
+  disclosureAcademics?: DisclosureDoc[];
+  disclosureResults?: BoardResult[];
+  disclosureStaff?: DisclosureRow[];
+  disclosureInfrastructure?: DisclosureRow[];
 };
 
 /** The logo bundled with the site, used until an admin uploads a new one. */
@@ -229,6 +244,14 @@ export const useSiteContent = () => {
     sessionCalendar: data.sessionCalendar ?? sessionCalendar,
     streams: data.streams ?? streams,
     stages: data.stages ?? stages,
+    disclosure: {
+      general: data.disclosureGeneral ?? disclosureGeneral,
+      documents: data.disclosureDocuments ?? disclosureDocuments,
+      academics: data.disclosureAcademics ?? disclosureAcademics,
+      results: data.disclosureResults ?? [],
+      staff: data.disclosureStaff ?? disclosureStaff,
+      infrastructure: data.disclosureInfrastructure ?? disclosureInfrastructure,
+    },
   };
 };
 

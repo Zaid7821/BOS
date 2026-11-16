@@ -73,7 +73,7 @@ npm run check       # typecheck + lint + server syntax check + production build
 - **Images:** use Cloudinary URLs through `cld(url, width)` and `cldSrcSet(url)`; add `loading="lazy"` below the fold. Don't add large images to `public/`.
 - **Content that admins edit** must be read through hooks, never directly from `site.ts`, otherwise admin edits won't show:
   - `useSchool()`: school name (English/Hindi), affiliation no., year founded, phone, WhatsApp, email, address, office hours, social links, chairman, hero/vision images, prospectus, About history (use it instead of `SCHOOL` for these fields)
-  - `useSiteContent()`: logo, toppers, events, fees, bus routes, testimonials, staff, stats, videos, admission steps/documents/age criteria, enquiry-form classes, stages, streams, academic calendar
+  - `useSiteContent()`: logo, toppers, events, fees, bus routes, testimonials, staff, stats, videos, admission steps/documents/age criteria, enquiry-form classes, stages, streams, academic calendar, CBSE Mandatory Public Disclosure (`/mandatory-disclosure`, sections A–E; CBSE requires this page, keep it linked in the footer)
   - `useGallery()`: gallery photos
   - `t("key", vars?)`: keys listed in `EDITABLE_TEXTS` (`src/lib/i18n.tsx`) can be overridden by admins per language, page by page. `{name}`-style placeholders are filled from `vars`
 - **Goal: school staff change content in the admin panel, not in code.** When adding new content that staff may want to change, make it admin-editable.

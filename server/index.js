@@ -26,6 +26,8 @@ const cloudinaryReady = Boolean(CLOUDINARY.cloudName && CLOUDINARY.apiKey && CLO
 const CONTENT_KEYS = [
   "toppers", "events", "fees", "transport", "testimonials", "staff", "stats", "videos", "branding",
   "school", "texts", "admissionSteps", "admissionDocuments", "ageCriteria", "classOptions", "sessionCalendar", "streams", "stages",
+  // CBSE Mandatory Public Disclosure page
+  "disclosureGeneral", "disclosureDocuments", "disclosureAcademics", "disclosureResults", "disclosureStaff", "disclosureInfrastructure",
 ];
 const ENQUIRY_STATUSES = ["new", "contacted", "admitted", "closed"];
 
@@ -125,6 +127,9 @@ const CONTENT_LABELS = {
   branding: "School logo", school: "School details", texts: "Page text", admissionSteps: "How to apply steps",
   admissionDocuments: "Documents required", ageCriteria: "Age criteria", classOptions: "Classes in enquiry form",
   sessionCalendar: "Academic calendar", streams: "Class XI–XII streams", stages: "Stages of schooling",
+  disclosureGeneral: "CBSE disclosure: general information", disclosureDocuments: "CBSE disclosure: documents",
+  disclosureAcademics: "CBSE disclosure: academic documents", disclosureResults: "CBSE disclosure: board results",
+  disclosureStaff: "CBSE disclosure: teaching staff", disclosureInfrastructure: "CBSE disclosure: infrastructure",
 };
 
 const scrypt = (password, salt) =>
@@ -683,6 +688,12 @@ app.put("/api/admin/content/:key", requireAdmin, canEditContent, async (req, res
     const links = ["facebook", "youtube", "instagram", "chairmanPhoto", "heroImage", "visionImage", "prospectusUrl"];
     const bad = links.find((k) => value[k] && !/^(https:\/\/\S+|\/[\w./-]*)$/.test(String(value[k]).trim()));
     if (bad) return res.status(400).json({ success: false, message: `“${bad}” must be a link starting with https://` });
+  }
+  if (key === "disclosureDocuments" || key === "disclosureAcademics") {
+    // Document links end up in href attributes: allow only real web links.
+    if (!Array.isArray(value)) return res.status(400).json({ success: false, message: "Nothing to save." });
+    const bad = value.find((d) => d?.url && !/^https:\/\/\S+$/.test(String(d.url).trim()));
+    if (bad) return res.status(400).json({ success: false, message: `The link for “${clean(bad.title, 80)}” must start with https://` });
   }
   await pool.query(
     `INSERT INTO site_content (key, value, updated_at) VALUES ($1, $2, NOW())
