@@ -2,6 +2,8 @@
 # so React Router can show it, while real files (JS, CSS, images) are served normally.
 RewriteEngine On
 RewriteBase /
+# Browsers also ask for /favicon.ico; serve the PNG icon instead of the HTML page.
+RewriteRule ^favicon\.ico$ favicon-48.png [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.html [L]
