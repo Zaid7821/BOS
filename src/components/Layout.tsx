@@ -311,6 +311,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               {t("footer.staffLogin")}
             </Link>
           </div>
+          <p className="mt-4 text-center text-xs text-primary-foreground/60">{t("footer.credit")}</p>
         </div>
       </footer>
 
