@@ -168,7 +168,7 @@ const pickList = (value: string[] | undefined, fallback: string[]) => (value?.so
 export const useSchool = () => {
   const s = useRawContent().data?.school ?? {};
   const phoneDisplay = pick(s.phoneDisplay, SCHOOL.phoneDisplay);
-  const founded = /^d{4}$/.test(s.founded?.trim() ?? "") ? Number(s.founded) : SCHOOL.founded;
+  const founded = /^\d{4}$/.test(s.founded?.trim() ?? "") ? Number(s.founded) : SCHOOL.founded;
   return {
     ...SCHOOL,
     name: pick(s.name, SCHOOL.name),
@@ -206,7 +206,7 @@ export const useSiteContent = () => {
   // Show nothing rather than the bundled logo, which may be the old one.
   const logo = data.branding?.logo || (isPending ? "" : DEFAULT_LOGO);
 
-  const founded = /^d{4}$/.test(data.school?.founded?.trim() ?? "") ? Number(data.school?.founded) : null;
+  const founded = /^\d{4}$/.test(data.school?.founded?.trim() ?? "") ? Number(data.school?.founded) : null;
   const years = founded ? new Date().getFullYear() - founded : yearsRunning();
   const statItems = isPending
     ? [] // hide the bar instead of flashing the built-in numbers
