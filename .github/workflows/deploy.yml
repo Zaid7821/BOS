@@ -1,0 +1,45 @@
+# Builds the website and puts ONLY the built files (dist/) on the "deploy" branch.
+# Hostinger's Git deployment pulls the "deploy" branch into public_html.
+# Never point Hostinger at main or a work branch: that publishes raw source code.
+#
+# Backend URL: set it on GitHub at Settings > Secrets and variables > Actions > Variables
+# as VITE_API_BASE_URL (e.g. https://api.bosfatehpur.in). It is public, not a secret.
+name: Deploy build
+
+on:
+  push:
+    branches: [main, staff-logins]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and publish to deploy branch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+      - name: Push dist/ to the deploy branch
+        working-directory: dist
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git init -q -b deploy
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Build of ${GITHUB_REF_NAME} @ ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" deploy
