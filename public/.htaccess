@@ -1,0 +1,7 @@
+# Used by Apache/LiteSpeed hosting (e.g. Hostinger). Sends every page URL to index.html
+# so React Router can show it, while real files (JS, CSS, images) are served normally.
+RewriteEngine On
+RewriteBase /
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
