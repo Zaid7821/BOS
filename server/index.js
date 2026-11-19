@@ -28,6 +28,8 @@ const CONTENT_KEYS = [
   "school", "texts", "admissionSteps", "admissionDocuments", "ageCriteria", "classOptions", "sessionCalendar", "streams", "stages",
   // CBSE Mandatory Public Disclosure page
   "disclosureGeneral", "disclosureDocuments", "disclosureAcademics", "disclosureResults", "disclosureStaff", "disclosureInfrastructure",
+  // Home page photo slider
+  "heroSlides",
 ];
 const ENQUIRY_STATUSES = ["new", "contacted", "admitted", "closed"];
 
@@ -130,6 +132,7 @@ const CONTENT_LABELS = {
   disclosureGeneral: "CBSE disclosure: general information", disclosureDocuments: "CBSE disclosure: documents",
   disclosureAcademics: "CBSE disclosure: academic documents", disclosureResults: "CBSE disclosure: board results",
   disclosureStaff: "CBSE disclosure: teaching staff", disclosureInfrastructure: "CBSE disclosure: infrastructure",
+  heroSlides: "Home slider photos",
 };
 
 const scrypt = (password, salt) =>
@@ -870,6 +873,13 @@ app.put("/api/admin/content/:key", requireAdmin, canEditContent, async (req, res
     const links = ["facebook", "youtube", "instagram", "chairmanPhoto", "heroImage", "visionImage", "prospectusUrl"];
     const bad = links.find((k) => value[k] && !/^(https:\/\/\S+|\/[\w./-]*)$/.test(String(value[k]).trim()));
     if (bad) return res.status(400).json({ success: false, message: `“${bad}” must be a link starting with https://` });
+  }
+  if (key === "heroSlides") {
+    // Photos end up in src attributes: allow only https links.
+    if (!Array.isArray(value)) return res.status(400).json({ success: false, message: "Nothing to save." });
+    if (value.some((s) => !isImageUrl(clean(s?.image, 500)))) {
+      return res.status(400).json({ success: false, message: "Every slider photo must be uploaded or be a link starting with https://" });
+    }
   }
   if (key === "disclosureDocuments" || key === "disclosureAcademics") {
     // Document links end up in href attributes: allow only real web links.

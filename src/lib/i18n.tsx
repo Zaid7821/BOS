@@ -92,6 +92,8 @@ const en = {
   "footer.rights": "All rights reserved.",
   "footer.staffLogin": "Staff login",
   "footer.credit": "Designed & developed by ZH",
+  "home.latestNotices": "Latest notices",
+  "home.slideLabel": "Show photo {n}",
   "pages.openDocument": "Open document",
   "whatsapp.message": "Hello, I would like information about admission at Brilliant Oriental Senior Secondary School.",
 
@@ -298,6 +300,8 @@ const hi: Dict = {
   "footer.rights": "सर्वाधिकार सुरक्षित।",
   "footer.staffLogin": "स्टाफ लॉगिन",
   "footer.credit": "डिज़ाइन और विकास: ZH",
+  "home.latestNotices": "ताज़ा सूचनाएं",
+  "home.slideLabel": "फ़ोटो {n} दिखाएं",
   "pages.openDocument": "दस्तावेज़ खोलें",
   "whatsapp.message": "नमस्ते, मुझे ब्रिलियंट ओरिएंटल सीनियर सेकेंडरी स्कूल में प्रवेश की जानकारी चाहिए।",
 
@@ -441,7 +445,9 @@ export const EDITABLE_TEXTS: EditableGroup[] = [
     items: [
       { key: "home.badge", label: "Small badge above the school name" },
       { key: "home.welcome", label: "Line above the school name" },
-      { key: "home.tagline", label: "Tagline under the school name", long: true },
+      { key: "home.tagline", label: "Tagline under the school name (computers only)", long: true },
+      { key: "home.slideLabel", label: "Photo dots, read aloud by screen readers ({n} = photo number)" },
+      { key: "home.latestNotices", label: "“Latest notices” card heading" },
     ],
   },
   {
@@ -728,7 +734,7 @@ export const EDITABLE_TEXTS: EditableGroup[] = [
     page: "Menu, buttons & footer",
     group: "Notice bar, footer & WhatsApp",
     items: [
-      { key: "notice.label", label: "Label of the scrolling notice bar" },
+      { key: "notice.label", label: "Label of the notice bar (other pages, computers)" },
       { key: "notice.viewAll", label: "“View all” link in the notice bar" },
       { key: "notice.new", label: "Tag on important notices in the notice bar" },
       { key: "notice.important", label: "Tag on important notices (Notices page)" },

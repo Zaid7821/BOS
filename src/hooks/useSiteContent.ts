@@ -47,6 +47,8 @@ export type Stage = { level: string; classes: string; description: string; subje
 /** CBSE disclosure rows: a fixed label and the school's answer, or a document title and its PDF link. */
 export type DisclosureRow = { label: string; value: string };
 export type DisclosureDoc = { title: string; url: string };
+/** A photo in the home page slider, chosen in Admin > Website content > Home slider photos. */
+export type HeroSlide = { image: string; caption?: string; captionHi?: string };
 export type BoardResult = { exam: string; year: string; registered: string; passed: string; percentage: string; remarks: string };
 
 /** School details an admin can change. Empty or missing fields fall back to SCHOOL in site.ts. */
@@ -102,6 +104,7 @@ export type SiteContent = {
   disclosureResults?: BoardResult[];
   disclosureStaff?: DisclosureRow[];
   disclosureInfrastructure?: DisclosureRow[];
+  heroSlides?: HeroSlide[];
 };
 
 /** The logo bundled with the site, used until an admin uploads a new one. */
@@ -244,6 +247,8 @@ export const useSiteContent = () => {
     sessionCalendar: data.sessionCalendar ?? sessionCalendar,
     streams: data.streams ?? streams,
     stages: data.stages ?? stages,
+    /** Photos for the home slider; empty = use the main picture and newest gallery photos instead. */
+    heroSlides: data.heroSlides ?? [],
     disclosure: {
       general: data.disclosureGeneral ?? disclosureGeneral,
       documents: data.disclosureDocuments ?? disclosureDocuments,

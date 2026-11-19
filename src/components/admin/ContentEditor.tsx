@@ -125,6 +125,19 @@ const SECTIONS: ListSection[] = [
     ],
   },
   {
+    key: "heroSlides",
+    group: "Home & About",
+    title: "Home slider photos",
+    hint: "The photos that slide at the top of the home page, in this order. Use wide (landscape) photos, at least 1600 px wide; the school name covers the lower part. Leave the list empty to show the main picture and the newest gallery photos automatically.",
+    item: "photo",
+    defaults: [],
+    fields: [
+      { key: "image", label: "Photo", type: "image", required: true },
+      { key: "caption", label: "Caption (English, optional)", placeholder: "Annual Day 2026" },
+      { key: "captionHi", label: "Caption (हिंदी, optional)", placeholder: "वार्षिकोत्सव 2026" },
+    ],
+  },
+  {
     key: "staff",
     group: "Home & About",
     title: "Leadership & staff",

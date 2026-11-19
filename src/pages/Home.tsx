@@ -1,12 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import StatsCounter from "@/components/StatsCounter";
 import Toppers from "@/components/Toppers";
 import Testimonials from "@/components/Testimonials";
-import { BookOpen, Users, GraduationCap, Phone } from "lucide-react";
-import { DEFAULT_HERO, useSchool } from "@/hooks/useSiteContent";
+import { BookOpen, Users, GraduationCap } from "lucide-react";
+import HeroSlider from "@/components/home/HeroSlider";
+import QuickTiles from "@/components/home/QuickTiles";
+import LatestNotices from "@/components/home/LatestNotices";
+import { useSchool } from "@/hooks/useSiteContent";
 import { cld, cldSrcSet } from "@/lib/cloudinary";
 import { useLanguage } from "@/lib/i18n";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -26,48 +28,13 @@ const Home = () => {
   return (
     <Layout>
       <div className="space-y-12 md:space-y-16">
-        {/* Hero */}
-        <section className="relative min-h-[70svh] md:min-h-[78vh] flex items-center justify-center overflow-hidden">
-          <img
-            src={school.heroImage === DEFAULT_HERO ? DEFAULT_HERO : cld(school.heroImage, 1280)}
-            srcSet={school.heroImage === DEFAULT_HERO ? "/images/bos-hero-800.jpg 800w, /images/bos-hero.jpg 1280w" : cldSrcSet(school.heroImage, [800, 1280, 1920])}
-            sizes="100vw"
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-950/90 via-blue-900/75 to-emerald-700/70" />
+        {/* Hero photos with the quick-link tiles overlapping its bottom edge (one block, so the overlap isn't undone by the spacing) */}
+        <div>
+          <HeroSlider />
+          <QuickTiles />
+        </div>
 
-          <div className="container mx-auto px-4 text-center relative z-10 py-12 md:py-16">
-            <div className="animate-fade-in">
-              <Badge variant="secondary" className="mb-5 md:mb-6 text-xs sm:text-sm px-4 py-2 bg-amber-400 text-black font-semibold shadow-lg hover:bg-amber-400">
-                {t("home.badge")}
-              </Badge>
-
-              <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 leading-tight text-white drop-shadow-xl">
-                <span className="block text-xl md:text-3xl font-medium text-white/90 mb-2">{t("home.welcome")}</span>
-                <span className="block text-secondary">{lang === "hi" ? school.nameHi : school.name}</span>
-              </h1>
-
-              <p className="text-base md:text-lg mb-3 font-semibold text-white/95">
-                {t("header.affiliated")} · {t("header.affiliationNo")} {school.affiliationNo}
-              </p>
-
-              <p className="text-base md:text-xl mb-8 text-gray-100 max-w-3xl mx-auto drop-shadow">{t("home.tagline")}</p>
-
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary-light text-base px-8" onClick={() => navigate("/admissions#enquiry")}>
-                  {t("cta.enquire")}
-                </Button>
-                <Button size="lg" variant="outline" className="bg-white/10 text-white border-white/60 hover:bg-white hover:text-primary text-base px-8" asChild>
-                  <a href={`tel:${school.phone}`}>
-                    <Phone className="h-5 w-5 mr-2" aria-hidden="true" />
-                    {t("cta.call")}
-                  </a>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
+        <LatestNotices />
 
         {/* Vision & Mission */}
         <section className="container mx-auto px-4">
