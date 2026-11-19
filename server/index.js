@@ -297,6 +297,21 @@ async function initDb() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
     CREATE INDEX IF NOT EXISTS activity_log_created_at ON activity_log (created_at DESC);
+
+    -- Pages staff create themselves (Admin > Pages), shown at /p/<slug>. blocks is a JSON list
+    -- of content blocks (heading, paragraph, image…), checked by cleanBlocks() before saving.
+    CREATE TABLE IF NOT EXISTS custom_pages (
+      id SERIAL PRIMARY KEY,
+      slug TEXT NOT NULL UNIQUE,
+      title_en TEXT NOT NULL,
+      title_hi TEXT NOT NULL DEFAULT '',
+      placement TEXT NOT NULL DEFAULT 'footer',
+      status TEXT NOT NULL DEFAULT 'draft',
+      blocks JSONB NOT NULL DEFAULT '[]',
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
   `);
 
   // Copy the original gallery photos in once, so admins can manage (and delete) them too.
@@ -415,6 +430,173 @@ app.get("/api/content", async (req, res) => {
     console.error("Error loading content:", err);
     res.status(500).json({ success: false, data: {} });
   }
+});
+
+// ---------- Custom pages (staff-made pages at /p/<slug>) ----------
+const PAGE_PLACEMENTS = ["footer", "menu", "none"];
+const PAGE_STATUSES = ["draft", "published"];
+const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const MAX_BLOCKS = 80;
+const BLOCK_NAMES = {
+  heading: "Heading", paragraph: "Paragraph", image: "Photo", document: "Document",
+  button: "Button", video: "YouTube video", table: "Table", notice: "Notice box",
+};
+const isPageLink = (v) => /^https:\/\/\S+$/.test(v) || /^\/[\w\-./#?=&%]*$/.test(v);
+
+/** Cleans the blocks sent by the admin editor. Returns { blocks } or { error } in plain language. */
+const cleanBlocks = (raw) => {
+  if (!Array.isArray(raw)) return { error: "The page content is missing." };
+  if (raw.length > MAX_BLOCKS) return { error: `A page can have at most ${MAX_BLOCKS} blocks.` };
+  const blocks = [];
+  for (const [i, b] of raw.entries()) {
+    const name = `Block ${i + 1} (${BLOCK_NAMES[b?.type] ?? "unknown"})`;
+    const s = (key, max) => clean(b?.[key], max);
+    switch (b?.type) {
+      case "heading":
+        if (!s("text", 200)) return { error: `${name}: write the heading text.` };
+        blocks.push({ type: "heading", text: s("text", 200), textHi: s("textHi", 200) });
+        break;
+      case "paragraph":
+      case "notice":
+        if (!s("text", 5000)) return { error: `${name}: write some text.` };
+        blocks.push({ type: b.type, text: s("text", 5000), textHi: s("textHi", 5000) });
+        break;
+      case "image":
+        if (!isImageUrl(s("url", 500))) return { error: `${name}: upload a photo or paste a link starting with https://` };
+        blocks.push({ type: "image", url: s("url", 500), caption: s("caption", 200), captionHi: s("captionHi", 200) });
+        break;
+      case "document":
+        if (!isImageUrl(s("url", 500))) return { error: `${name}: upload the file or paste a link starting with https://` };
+        blocks.push({ type: "document", url: s("url", 500), label: s("label", 200), labelHi: s("labelHi", 200) });
+        break;
+      case "button":
+        if (!s("label", 80)) return { error: `${name}: write the button text.` };
+        if (!isPageLink(s("url", 500))) return { error: `${name}: the link must start with https:// or /` };
+        blocks.push({ type: "button", url: s("url", 500), label: s("label", 80), labelHi: s("labelHi", 80) });
+        break;
+      case "video":
+        if (!/^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\/\S+$/.test(s("url", 300))) {
+          return { error: `${name}: paste a YouTube link (https://youtu.be/… or https://www.youtube.com/…)` };
+        }
+        blocks.push({ type: "video", url: s("url", 300) });
+        break;
+      case "table": {
+        const rows = (Array.isArray(b.rows) ? b.rows : [])
+          .slice(0, 60)
+          .map((r) => (Array.isArray(r) ? r.slice(0, 8).map((c) => clean(c, 300)) : []))
+          .filter((r) => r.some(Boolean));
+        if (!rows.length) return { error: `${name}: add at least one row.` };
+        blocks.push({ type: "table", rows });
+        break;
+      }
+      default:
+        return { error: `${name}: this kind of block is not supported.` };
+    }
+  }
+  return { blocks };
+};
+
+/** Reads and checks the page fields sent by the admin editor. Returns { page } or { error }. */
+const readPage = (body) => {
+  const page = {
+    slug: clean(body.slug, 60).toLowerCase(),
+    titleEn: clean(body.titleEn, 120),
+    titleHi: clean(body.titleHi, 120),
+    placement: PAGE_PLACEMENTS.includes(body.placement) ? body.placement : "footer",
+    status: PAGE_STATUSES.includes(body.status) ? body.status : "draft",
+  };
+  if (!page.titleEn) return { error: "Page title (English) is required." };
+  if (!SLUG_RE.test(page.slug)) {
+    return { error: "Page address can use only small letters, numbers and dashes, e.g. holiday-homework" };
+  }
+  const { blocks, error } = cleanBlocks(body.blocks);
+  if (error) return { error };
+  return { page: { ...page, blocks } };
+};
+
+const pageOut = (r) => ({
+  id: r.id, slug: r.slug, titleEn: r.title_en, titleHi: r.title_hi, placement: r.placement,
+  status: r.status, blocks: r.blocks, updatedAt: r.updated_at,
+});
+
+// Published pages for the menu and footer (no content, so it stays small).
+app.get("/api/pages", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, title_en, title_hi, placement, status, '[]'::jsonb AS blocks, updated_at FROM custom_pages
+       WHERE status = 'published' ORDER BY sort_order, id`,
+    );
+    res.json({ success: true, data: rows.map(pageOut) });
+  } catch (err) {
+    console.error("Error loading pages:", err);
+    res.status(500).json({ success: false, data: [] });
+  }
+});
+
+app.get("/api/pages/:slug", async (req, res) => {
+  const { rows } = await pool.query(`SELECT * FROM custom_pages WHERE slug = $1 AND status = 'published'`, [
+    clean(req.params.slug, 60).toLowerCase(),
+  ]);
+  if (!rows[0]) return res.status(404).json({ success: false, message: "Page not found." });
+  res.json({ success: true, data: pageOut(rows[0]) });
+});
+
+app.get("/api/admin/pages", requireAdmin, requirePrincipal, async (req, res) => {
+  const { rows } = await pool.query(`SELECT * FROM custom_pages ORDER BY sort_order, id`);
+  res.json({ success: true, data: rows.map(pageOut) });
+});
+
+const SLUG_TAKEN = "Another page already uses this address. Choose a different one.";
+
+app.post("/api/admin/pages", requireAdmin, requirePrincipal, async (req, res) => {
+  const { page, error } = readPage(req.body);
+  if (error) return res.status(400).json({ success: false, message: error });
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO custom_pages (slug, title_en, title_hi, placement, status, blocks, sort_order)
+       VALUES ($1, $2, $3, $4, $5, $6, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM custom_pages)) RETURNING *`,
+      [page.slug, page.titleEn, page.titleHi, page.placement, page.status, JSON.stringify(page.blocks)],
+    );
+    await logActivity(req, "Created page", `${page.titleEn} (/p/${page.slug})`);
+    res.json({ success: true, data: pageOut(rows[0]) });
+  } catch (err) {
+    if (err.code === "23505") return res.status(400).json({ success: false, message: SLUG_TAKEN });
+    throw err;
+  }
+});
+
+app.put("/api/admin/pages/:id", requireAdmin, requirePrincipal, async (req, res) => {
+  const { page, error } = readPage(req.body);
+  if (error) return res.status(400).json({ success: false, message: error });
+  try {
+    const { rows } = await pool.query(
+      `UPDATE custom_pages SET slug = $1, title_en = $2, title_hi = $3, placement = $4, status = $5, blocks = $6, updated_at = NOW()
+       WHERE id = $7 RETURNING *`,
+      [page.slug, page.titleEn, page.titleHi, page.placement, page.status, JSON.stringify(page.blocks), Number(req.params.id)],
+    );
+    if (!rows[0]) return res.status(404).json({ success: false, message: "This page no longer exists." });
+    await logActivity(req, "Edited page", `${page.titleEn} (/p/${page.slug})`);
+    res.json({ success: true, data: pageOut(rows[0]) });
+  } catch (err) {
+    if (err.code === "23505") return res.status(400).json({ success: false, message: SLUG_TAKEN });
+    throw err;
+  }
+});
+
+// Saves the order of pages in the menu and footer: { ids: [3, 1, 2] }.
+app.post("/api/admin/pages/order", requireAdmin, requirePrincipal, async (req, res) => {
+  const ids = Array.isArray(req.body.ids) ? req.body.ids.map(Number).filter(Number.isInteger).slice(0, 500) : [];
+  for (const [i, id] of ids.entries()) {
+    await pool.query(`UPDATE custom_pages SET sort_order = $1 WHERE id = $2`, [i + 1, id]);
+  }
+  await logActivity(req, "Reordered pages");
+  res.json({ success: true });
+});
+
+app.delete("/api/admin/pages/:id", requireAdmin, requirePrincipal, async (req, res) => {
+  const { rows } = await pool.query(`DELETE FROM custom_pages WHERE id = $1 RETURNING title_en, slug`, [Number(req.params.id)]);
+  if (rows[0]) await logActivity(req, "Deleted page", `${rows[0].title_en} (/p/${rows[0].slug})`);
+  res.json({ success: true });
 });
 
 // ---------- Admin routes ----------
@@ -786,7 +968,7 @@ app.use((err, req, res, next) => {
 // ---------- Start ----------
 initDb()
   .then(() => {
-    console.log("Database ready (contact_messages, admission_enquiries, notices, gallery_photos, site_content, admin_users, activity_log).");
+    console.log("Database ready (contact_messages, admission_enquiries, notices, gallery_photos, site_content, admin_users, activity_log, custom_pages).");
     if (!cloudinaryReady) console.log("Cloudinary keys not set: admins can add gallery photos by link only.");
     app.listen(PORT, () => console.log(`Backend server running on port ${PORT}`));
   })

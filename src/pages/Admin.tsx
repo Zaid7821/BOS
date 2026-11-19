@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Search, Trash2 } from "lucide-react";
 import GalleryManager from "@/components/admin/GalleryManager";
 import ContentEditor from "@/components/admin/ContentEditor";
+import PagesEditor from "@/components/admin/PagesEditor";
 import StaffManager from "@/components/admin/StaffManager";
 import { ROLE_LABEL, type AdminUser } from "@/components/admin/staff";
 import ActivityLog from "@/components/admin/ActivityLog";
@@ -295,6 +296,7 @@ const Admin = () => {
             {isPrincipal && <TabsTrigger value="messages">Messages ({messages.length})</TabsTrigger>}
             <TabsTrigger value="gallery">Gallery</TabsTrigger>
             <TabsTrigger value="content">{isPrincipal ? "Website content" : "Events"}</TabsTrigger>
+            {isPrincipal && <TabsTrigger value="pages">Pages</TabsTrigger>}
             {isPrincipal && <TabsTrigger value="staff">Staff logins</TabsTrigger>}
             {isPrincipal && <TabsTrigger value="activity">Activity</TabsTrigger>}
             <TabsTrigger value="account">My password</TabsTrigger>
@@ -525,6 +527,12 @@ const Admin = () => {
           <TabsContent value="content">
             <ContentEditor token={token} onError={setError} allowedKeys={isPrincipal ? undefined : TEACHER_CONTENT_KEYS} />
           </TabsContent>
+
+          {isPrincipal && (
+            <TabsContent value="pages">
+              <PagesEditor token={token} onError={setError} />
+            </TabsContent>
+          )}
 
           {isPrincipal && (
             <TabsContent value="staff">

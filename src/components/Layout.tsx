@@ -4,6 +4,7 @@ import { Menu, X, Phone, Mail, MapPin, Facebook, Youtube, Instagram, Languages, 
 import { useEffect, useState } from "react";
 import { cld } from "@/lib/cloudinary";
 import { useSchool, useSiteContent } from "@/hooks/useSiteContent";
+import { pageTitle, usePublishedPages } from "@/hooks/useCustomPages";
 
 import { useLanguage, type TKey } from "@/lib/i18n";
 import NoticeTicker from "./NoticeTicker";
@@ -59,6 +60,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   useScrollOnNavigate();
   const { pathname } = useLocation();
   const { logo, hasCustomLogo, stages } = useSiteContent();
+  // Pages staff made in Admin > Pages: "menu" ones go in the phone menu and top bar; all linked ones in the footer.
+  const customPages = usePublishedPages();
+  const menuPages = customPages.filter((p) => p.placement === "menu").map((p) => ({ to: `/p/${p.slug}`, label: pageTitle(p, lang) }));
+  const footerPages = customPages.filter((p) => p.placement !== "none").map((p) => ({ to: `/p/${p.slug}`, label: pageTitle(p, lang) }));
 
   // Use the admin-uploaded logo as the browser tab icon too.
   useEffect(() => {
@@ -106,6 +111,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               </span>
             </div>
             <div className="flex items-center gap-4">
+              {menuPages.map((p) => (
+                <Link key={p.to} to={p.to} className="hover:text-primary hover:underline">
+                  {p.label}
+                </Link>
+              ))}
               <Link to="/mandatory-disclosure" className="hover:text-primary hover:underline">
                 {t("nav.disclosure")}
               </Link>
@@ -175,7 +185,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           {isMobileMenuOpen && (
             <nav className="xl:hidden pb-4 border-t border-border/50 pt-3 max-h-[calc(100dvh-5rem)] overflow-y-auto" aria-label="Main">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                {navItems.map((item) => (
+                {[...navItems.map((item) => ({ to: item.to, label: t(item.key) })), ...menuPages].map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}
@@ -187,7 +197,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    {t(item.key)}
+                    {item.label}
                   </NavLink>
                 ))}
               </div>
@@ -249,10 +259,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <div>
               <h2 className="text-lg font-semibold mb-4">{t("footer.quickLinks")}</h2>
               <ul className="space-y-2">
-                {[...navItems.slice(1), { to: "/mandatory-disclosure", key: "nav.disclosure" as TKey }].map((item) => (
+                {[
+                  ...navItems.slice(1).map((item) => ({ to: item.to, label: t(item.key) })),
+                  { to: "/mandatory-disclosure", label: t("nav.disclosure") },
+                  ...footerPages,
+                ].map((item) => (
                   <li key={item.to}>
                     <Link to={item.to} className="text-sm text-primary-foreground/80 hover:text-primary-foreground hover:underline">
-                      {t(item.key)}
+                      {item.label}
                     </Link>
                   </li>
                 ))}

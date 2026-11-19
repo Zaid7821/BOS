@@ -75,6 +75,7 @@ npm run check       # typecheck + lint + server syntax check + production build
   - `useSchool()`: school name (English/Hindi), affiliation no., year founded, phone, WhatsApp, email, address, office hours, social links, chairman, hero/vision images, prospectus, About history (use it instead of `SCHOOL` for these fields)
   - `useSiteContent()`: logo, toppers, events, fees, bus routes, testimonials, staff, stats, videos, admission steps/documents/age criteria, enquiry-form classes, stages, streams, academic calendar, CBSE Mandatory Public Disclosure (`/mandatory-disclosure`, sections A–E; CBSE requires this page, keep it linked in the footer)
   - `useGallery()`: gallery photos
+  - `usePublishedPages()` / `useCustomPage()`: pages staff make in Admin > Pages (shown at `/p/<slug>`, stored in the `custom_pages` table; blocks are checked by `cleanBlocks()` in `server/index.js`, so add new block types there and in `src/components/PageBlocks.tsx`)
   - `t("key", vars?)`: keys listed in `EDITABLE_TEXTS` (`src/lib/i18n.tsx`) can be overridden by admins per language, page by page. `{name}`-style placeholders are filled from `vars`
 - **Goal: school staff change content in the admin panel, not in code.** When adding new content that staff may want to change, make it admin-editable.
 - The footer has a "Staff login" link to `/admin` (blocked for search engines in `public/robots.txt`).
@@ -119,11 +120,11 @@ When pasting values into a hosting dashboard, make sure there is **no trailing n
 
 ## API overview
 
-Public: `GET /api/health`, `GET /api/notices`, `GET /api/gallery`, `GET /api/content`, `POST /api/contact`, `POST /api/enquiry`.
+Public: `GET /api/health`, `GET /api/notices`, `GET /api/gallery`, `GET /api/content`, `GET /api/pages`, `GET /api/pages/:slug`, `POST /api/contact`, `POST /api/enquiry`.
 
 Admin (Bearer token from `POST /api/admin/login` with `{ username, password }`; empty username = master password):
 me (`GET /api/admin/me`), own password (`POST /api/admin/password`), staff logins (`GET`, `POST`, `PATCH`, `DELETE /api/admin/users`, principal only), activity log (`GET /api/admin/activity`, principal only),
 enquiries (`GET`, `PATCH` status/note, `DELETE`), messages (`GET`, `DELETE`), notices (`GET`, `POST`, `PATCH`, `DELETE`),
-gallery (`GET`, `POST`, `PATCH`, `DELETE`, `GET /api/admin/upload-signature`), content (`PUT` / `DELETE /api/admin/content/:key`).
+gallery (`GET`, `POST`, `PATCH`, `DELETE`, `GET /api/admin/upload-signature`), content (`PUT` / `DELETE /api/admin/content/:key`), custom pages (`GET`, `POST`, `PUT`, `DELETE /api/admin/pages`, `POST /api/admin/pages/order`, principal only).
 
 All responses are JSON shaped `{ success: boolean, message?: string, data?: ... }`.

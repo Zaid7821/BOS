@@ -92,6 +92,7 @@ const en = {
   "footer.rights": "All rights reserved.",
   "footer.staffLogin": "Staff login",
   "footer.credit": "Designed & developed by ZH",
+  "pages.openDocument": "Open document",
   "whatsapp.message": "Hello, I would like information about admission at Brilliant Oriental Senior Secondary School.",
 
   // Placeholders in {braces} are filled in from School details: {name}, {year}, {affiliationNo}, {session}.
@@ -297,6 +298,7 @@ const hi: Dict = {
   "footer.rights": "सर्वाधिकार सुरक्षित।",
   "footer.staffLogin": "स्टाफ लॉगिन",
   "footer.credit": "डिज़ाइन और विकास: ZH",
+  "pages.openDocument": "दस्तावेज़ खोलें",
   "whatsapp.message": "नमस्ते, मुझे ब्रिलियंट ओरिएंटल सीनियर सेकेंडरी स्कूल में प्रवेश की जानकारी चाहिए।",
 
   "about.badge": "हमारे विद्यालय के बारे में",
@@ -738,6 +740,7 @@ export const EDITABLE_TEXTS: EditableGroup[] = [
       { key: "footer.rights", label: "Footer: copyright line" },
       { key: "footer.staffLogin", label: "Footer: staff login link" },
       { key: "footer.credit", label: "Footer: website developer credit" },
+      { key: "pages.openDocument", label: "Pages you made: document button (when its text is empty)" },
       { key: "whatsapp.message", label: "Message pre-filled when parents tap WhatsApp", long: true },
     ],
   },

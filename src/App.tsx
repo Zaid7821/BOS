@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 const Gallery = lazy(() => import("./pages/Gallery"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Disclosure = lazy(() => import("./pages/Disclosure"));
+const CustomPage = lazy(() => import("./pages/CustomPage"));
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,8 @@ const App = () => (
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/mandatory-disclosure" element={<Disclosure />} />
+            {/* Pages staff make in Admin > Pages */}
+            <Route path="/p/:slug" element={<CustomPage />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
