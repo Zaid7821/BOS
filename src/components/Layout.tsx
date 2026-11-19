@@ -185,7 +185,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           {isMobileMenuOpen && (
             <nav className="xl:hidden pb-4 border-t border-border/50 pt-3 max-h-[calc(100dvh-5rem)] overflow-y-auto" aria-label="Main">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                {[...navItems.map((item) => ({ to: item.to, label: t(item.key) })), ...menuPages].map((item) => (
+                {[
+                  ...navItems.map((item) => ({ to: item.to, label: t(item.key) })),
+                  // Most visitors are on phones, where the top bar is hidden: keep the CBSE page one tap away.
+                  { to: "/mandatory-disclosure", label: t("nav.disclosure") },
+                  ...menuPages,
+                ].map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}
