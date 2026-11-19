@@ -128,17 +128,17 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
         <div className="container mx-auto px-4">
           {/* Main navigation */}
-          <div className="flex items-center justify-between gap-4 py-3">
-            <Link to="/" className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center justify-between gap-2 py-2 md:gap-4 md:py-3">
+            <Link to="/" className="flex items-center gap-2.5 min-w-0 md:gap-3">
               {logo ? (
-                <img src={cld(logo, 112)} alt="" className="h-11 w-11 md:h-14 md:w-14 shrink-0 object-contain" />
+                <img src={cld(logo, 112)} alt="" className="h-10 w-10 md:h-14 md:w-14 shrink-0 object-contain" />
               ) : (
-                <span aria-hidden className="h-11 w-11 md:h-14 md:w-14 shrink-0" />
+                <span aria-hidden className="h-10 w-10 md:h-14 md:w-14 shrink-0" />
               )}
               <div className="min-w-0">
-                <p className="text-[15px] sm:text-base md:text-xl font-bold leading-tight text-primary">{schoolName}</p>
+                <p className="text-[13.5px] sm:text-base md:text-xl font-bold leading-[1.2] text-primary">{schoolName}</p>
                 <p className="hidden md:block text-sm text-muted-foreground">{t("header.affiliated")}</p>
-                <p className="md:hidden text-xs text-muted-foreground whitespace-nowrap">
+                <p className="md:hidden mt-0.5 text-[11px] text-muted-foreground whitespace-nowrap">
                   CBSE Aff. No. {school.affiliationNo}
                 </p>
               </div>
@@ -168,7 +168,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
             {/* Mobile menu button */}
             <div className="flex items-center gap-2 xl:hidden">
-              <LanguageToggle className="px-2" />
+              <LanguageToggle className="h-9 px-2.5 text-[13px]" />
               <Button
                 variant="ghost"
                 size="icon"
@@ -337,7 +337,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       <WhatsAppButton />
 
       {/* Mobile action bar: most visitors are on phones, so keep call / WhatsApp / apply one tap away. */}
-      <div className="md:hidden fixed inset-x-0 bottom-0 z-50 grid grid-cols-3 border-t border-border bg-background/95 backdrop-blur pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
+      <div className="md:hidden fixed inset-x-0 bottom-0 z-50 grid grid-cols-3 border-t border-border/70 bg-background/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(15,23,42,0.08)]">
         <a href={`tel:${school.phone}`} className="flex h-16 flex-col items-center justify-center gap-1 text-xs font-semibold text-primary active:bg-muted">
           <Phone className="h-5 w-5" aria-hidden="true" />
           {t("cta.call")}
@@ -351,13 +351,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           <MessageCircle className="h-5 w-5" aria-hidden="true" />
           {t("cta.whatsapp")}
         </a>
-        <button
-          type="button"
-          onClick={goApply}
-          className="flex h-16 flex-col items-center justify-center gap-1 bg-secondary text-xs font-semibold text-secondary-foreground active:bg-secondary-light"
-        >
-          <Send className="h-5 w-5" aria-hidden="true" />
-          {t("cta.apply")}
+        <button type="button" onClick={goApply} className="flex h-16 items-center justify-center p-2">
+          <span className="flex h-full w-full flex-col items-center justify-center gap-0.5 rounded-xl bg-secondary text-xs font-bold text-secondary-foreground shadow-sm transition-transform active:scale-95">
+            <Send className="h-5 w-5" aria-hidden="true" />
+            {t("cta.apply")}
+          </span>
         </button>
       </div>
 

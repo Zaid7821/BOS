@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Phone } from "lucide-react";
+import { ArrowRight, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { DEFAULT_HERO, useGallery, useSchool, useSiteContent } from "@/hooks/useSiteContent";
 import { cld, cldSrcSet } from "@/lib/cloudinary";
 import { useLanguage } from "@/lib/i18n";
@@ -66,7 +65,7 @@ const HeroSlider = () => {
   };
 
   return (
-    <section className="relative h-[60svh] min-h-[400px] md:h-[78vh] md:min-h-[520px] overflow-hidden bg-blue-950" aria-roledescription="carousel">
+    <section className="relative h-[50svh] min-h-[330px] md:h-[78vh] md:min-h-[520px] overflow-hidden bg-slate-900" aria-roledescription="carousel">
       {/* Photos */}
       <div
         ref={track}
@@ -76,7 +75,7 @@ const HeroSlider = () => {
         onTouchStart={() => (userTouched.current = true)}
       >
         {slides.map((s, i) => (
-          <div key={`${i}-${s.src}`} className="relative h-full w-full shrink-0 snap-start">
+          <div key={`${i}-${s.src}`} className="relative h-full w-full shrink-0 snap-start overflow-hidden">
             <img
               src={s.src}
               srcSet={s.srcSet}
@@ -86,7 +85,7 @@ const HeroSlider = () => {
               // React 18 doesn't know the camelCase prop yet; the lowercase HTML attribute works in browsers.
               {...({ fetchpriority: i === 0 ? "high" : "low" } as object)}
               draggable={false}
-              className="h-full w-full object-cover"
+              className={`h-full w-full object-cover ${i === active ? "hero-zoom" : ""}`}
             />
             {s.caption && (
               <span className="absolute left-4 top-4 max-w-[80%] truncate rounded-full bg-black/55 px-3 py-1 text-sm font-medium text-white backdrop-blur-sm">
@@ -97,53 +96,57 @@ const HeroSlider = () => {
         ))}
       </div>
 
-      {/* Dark fade at the bottom so the text is readable while the top of the photo stays visible */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-blue-950/95 via-blue-950/55 to-blue-950/10" />
+      {/* Neutral dark fade only at the bottom: the photo stays bright and true-coloured, the text stays readable */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent md:from-black/80 md:via-black/45 md:to-black/20" />
 
-      {/* Text and button (only the button and dots catch taps, so swiping works everywhere else) */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 pb-14 md:pb-24">
-        <div className="container mx-auto px-4 text-center">
-          <Badge variant="secondary" className="mb-3 md:mb-5 px-3 py-1 text-xs sm:text-sm bg-amber-400 text-black font-semibold shadow-lg hover:bg-amber-400">
+      {/* Text and button (only the button and dots catch taps, so swiping works everywhere else).
+          Phones: left-aligned at the bottom, like an app. Computers: centred, with the longer text. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 pb-10 md:pb-24">
+        <div className="container mx-auto px-4 text-left md:text-center">
+          <span className="inline-block rounded-full border border-white/30 bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md md:text-sm">
             {t("home.badge")}
-          </Badge>
-          <h1 className="text-[1.65rem] leading-tight sm:text-4xl md:text-6xl font-bold text-white drop-shadow-xl">
+          </span>
+          <h1 className="mt-2.5 text-[1.6rem] font-bold leading-[1.15] text-white drop-shadow-lg sm:text-4xl md:mt-5 md:text-6xl">
             <span className="hidden md:block text-3xl font-medium text-white/90 mb-2">{t("home.welcome")}</span>
-            <span className="block text-secondary">{lang === "hi" ? school.nameHi : school.name}</span>
+            <span className="block md:text-secondary">{lang === "hi" ? school.nameHi : school.name}</span>
           </h1>
           <p className="hidden md:block mt-4 text-lg font-semibold text-white/95">
             {t("header.affiliated")} · {t("header.affiliationNo")} {school.affiliationNo}
           </p>
           <p className="hidden md:block mt-3 text-xl text-gray-100 max-w-3xl mx-auto drop-shadow">{t("home.tagline")}</p>
 
-          <div className="pointer-events-auto mt-5 md:mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" className="h-12 bg-secondary text-secondary-foreground hover:bg-secondary-light text-base px-8 shadow-lg" onClick={() => navigate("/admissions#enquiry")}>
-              {t("cta.enquire")}
-            </Button>
-            {/* Phones already have Call in the bottom bar */}
-            <Button size="lg" variant="outline" className="hidden md:inline-flex h-12 bg-white/10 text-white border-white/60 hover:bg-white hover:text-primary text-base px-8" asChild>
-              <a href={`tel:${school.phone}`}>
-                <Phone className="h-5 w-5 mr-2" aria-hidden="true" />
-                {t("cta.call")}
-              </a>
-            </Button>
-          </div>
-
-          {slides.length > 1 && (
-            <div className="pointer-events-auto mt-3 md:mt-6 flex justify-center">
-              {slides.map((s, i) => (
-                <button
-                  key={`${i}-${s.src}`}
-                  type="button"
-                  onClick={() => goTo(i)}
-                  aria-label={t("home.slideLabel", { n: i + 1 })}
-                  aria-current={i === active}
-                  className="flex h-8 w-8 items-center justify-center"
-                >
-                  <span className={`block h-2 rounded-full transition-all ${i === active ? "w-6 bg-secondary" : "w-2 bg-white/60"}`} />
-                </button>
-              ))}
+          <div className="pointer-events-auto mt-4 flex items-center justify-between gap-3 md:mt-8 md:flex-col md:justify-center">
+            <div className="flex gap-3">
+              <Button className="h-11 rounded-full bg-secondary px-5 text-[15px] font-semibold text-secondary-foreground shadow-lg hover:bg-secondary-light md:h-12 md:px-8 md:text-base" onClick={() => navigate("/admissions#enquiry")}>
+                {t("cta.enquire")}
+                <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden="true" />
+              </Button>
+              {/* Phones already have Call in the bottom bar */}
+              <Button variant="outline" className="hidden md:inline-flex h-12 rounded-full bg-white/10 text-white border-white/60 hover:bg-white hover:text-primary text-base px-8" asChild>
+                <a href={`tel:${school.phone}`}>
+                  <Phone className="h-5 w-5 mr-2" aria-hidden="true" />
+                  {t("cta.call")}
+                </a>
+              </Button>
             </div>
-          )}
+
+            {slides.length > 1 && (
+              <div className="flex shrink-0">
+                {slides.map((s, i) => (
+                  <button
+                    key={`${i}-${s.src}`}
+                    type="button"
+                    onClick={() => goTo(i)}
+                    aria-label={t("home.slideLabel", { n: i + 1 })}
+                    aria-current={i === active}
+                    className="flex h-8 w-4 items-center justify-center md:w-8"
+                  >
+                    <span className={`block h-1.5 rounded-full transition-all ${i === active ? "w-5 bg-white" : "w-1.5 bg-white/50"}`} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>

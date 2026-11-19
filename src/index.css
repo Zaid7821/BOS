@@ -134,3 +134,14 @@
     display: none;
   }
 }
+
+/* Home slider: the visible photo zooms in very slowly (only for visitors who haven't asked for less motion) */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-zoom {
+    animation: hero-zoom 9s ease-out both;
+  }
+  @keyframes hero-zoom {
+    from { transform: scale(1); }
+    to { transform: scale(1.08); }
+  }
+}

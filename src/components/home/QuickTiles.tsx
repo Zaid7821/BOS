@@ -15,18 +15,18 @@ const tiles: { to: string; key: TKey; icon: typeof BookOpen; color: string }[] =
 const QuickTiles = () => {
   const { t } = useLanguage();
   return (
-    <nav aria-label={t("footer.quickLinks")} className="container relative z-10 mx-auto -mt-8 px-4 md:-mt-12">
-      <ul className="grid grid-cols-3 gap-2.5 rounded-2xl bg-card p-3 shadow-school-md ring-1 ring-primary/10 sm:gap-3 md:grid-cols-6 md:p-4">
+    <nav aria-label={t("footer.quickLinks")} className="container relative z-10 mx-auto -mt-5 px-3 md:-mt-12 md:px-4">
+      <ul className="grid grid-cols-3 gap-1 rounded-2xl bg-card p-2 shadow-[0_8px_30px_rgba(15,23,42,0.12)] ring-1 ring-black/5 sm:gap-2 md:grid-cols-6 md:p-4">
         {tiles.map(({ to, key, icon: Icon, color }) => (
           <li key={to}>
             <Link
               to={to}
-              className="flex h-full min-h-[92px] flex-col items-center justify-center gap-2 rounded-xl px-1 py-3 text-center transition-colors hover:bg-muted active:bg-muted"
+              className="flex h-full min-h-[78px] flex-col items-center justify-center gap-1.5 rounded-xl px-1 py-2 text-center transition hover:bg-muted active:scale-95 active:bg-muted md:min-h-[92px] md:gap-2"
             >
-              <span className={`flex h-11 w-11 items-center justify-center rounded-full ${color}`}>
+              <span className={`flex h-10 w-10 items-center justify-center rounded-2xl md:h-11 md:w-11 ${color}`}>
                 <Icon className="h-5 w-5" aria-hidden="true" />
               </span>
-              <span className="text-[13px] font-semibold leading-tight text-foreground sm:text-sm">{t(key)}</span>
+              <span className="text-[12.5px] font-semibold leading-tight text-foreground sm:text-sm">{t(key)}</span>
             </Link>
           </li>
         ))}
